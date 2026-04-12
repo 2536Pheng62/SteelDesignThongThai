@@ -1,0 +1,103 @@
+{
+	// For quick reference: https://containers.dev/implementors/json_reference/
+	"name": "Local Colab",
+	// Same image from: https://research.google.com/colaboratory/local-runtimes.html
+	"image": "us-docker.pkg.dev/colab-images/public/runtime:latest",
+	
+	// 1. Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// Use these ports if you want to connect to the local kernel through the colab service
+	// "forwardPorts": ["9000:8080"]
+
+	// 2. Use 'mounts' to make a list of local directories available inside the container. More info: https://code.visualstudio.com/remote/advancedcontainers/add-local-file-mount
+	// "mounts": [],
+
+	// 3. Use 'runArgs' to pass arguments to the container. 
+	// run the container with all GPUs
+	"runArgs": [
+		"--gpus",
+		"all"
+	],
+
+	// 4. Features to add to the Dev Container. More info: https://containers.dev/implementors/features.
+	"features": {
+		// ZSH without OMZ, creates vscode user
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": "true",
+			"configureZshAsDefaultShell": "true",
+			"installOhMyZsh": "false",
+			"installOhMyZshConfig": "false",
+			"username": "vscode",
+			"userUid": "1000",
+			"userGid": "1000",
+			"upgradePackages": "true"
+		},
+		// updates git
+		"ghcr.io/devcontainers/features/git:1": {
+			"version": "os-provided",
+			"ppa": "false"
+		},
+		"ghcr.io/dhoeric/features/act:1": {},
+		"ghcr.io/flexwie/devcontainer-features/op:1": {},
+		"ghcr.io/wxw-matt/devcontainer-features/command_runner:0": {},
+		"ghcr.io/wxw-matt/devcontainer-features/script_runner:0": {},
+		"ghcr.io/nikiforovall/devcontainer-features/dotnet-csharpier:1": {},
+		"ghcr.io/ait-assistive-autonomous-systems/devcontainer_features/add-groups:0": {},
+		"ghcr.io/devcontainers-extra/features/act:1": {},
+		"ghcr.io/devcontainers-extra/features/act-asdf:2": {},
+		"ghcr.io/devcontainers-extra/features/actionlint:1": {},
+		"ghcr.io/dotnet/aspire-devcontainer-feature/dotnetaspire:1": {},
+		"ghcr.io/daniellindemann/dev-container-features/dotnet-usersecrets-persistence:0": {},
+		"ghcr.io/rails/devcontainer/features/activestorage:1": {},
+		"ghcr.io/devcontainer-config/features/dot-config:3": {}
+	},
+
+	// 5. Configure tool-specific properties.
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": {
+				"python.defaultInterpreterPath": "/usr/local/bin/python"
+			},
+			// installs useful extensions
+			"extensions": [
+				"ms-python.python",
+				"ms-python.debugpy",
+				"ms-python.vscode-pylance",
+				"ms-python.isort",
+				"ms-toolsai.jupyter",
+				"ms-toolsai.jupyter-keymap",
+				"ms-toolsai.vscode-jupyter-cell-tags",
+				"ms-toolsai.jupyter-renderers",
+				"ms-toolsai.vscode-jupyter-slideshow",
+				"ms-toolsai.tensorboard",
+				"charliermarsh.ruff"
+			]
+		}
+	},
+
+	// 6. Set `remoteUser` to `vscode` to connect as vscode instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	// The container filesystem, and therefore the Jupyter Notebooks, expect
+	// a root user, so the default will be "root".
+	"remoteUser": "root"
+
+	// the following commands are related to container lifecylce. More info: https://containers.dev/implementors/json_reference/#lifecycle-scripts
+	
+	// 7. Use 'initializeCommand' to run commands ON THE HOST before container is created or started.
+	// "initializeCommand": "",
+
+	// 8. Use 'onCreateCommand' to run commands INSIDE THE CONTAINER after it started for the first time.
+	// "onCreateCommand": "",
+	
+	// 9. Use 'updateContentCommand' to run commands if the root filetree have any changes, during container creation.
+	// "updateContentCommand": "",
+
+	// 10. Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "",
+
+	// 11. Use 'postStartCommand' to run a command each time the container starts successfully.
+	// "postStartCommand": "",
+	
+	// 12. Use 'postAttachCommand' to run a command each time a tool attaches to the container successfully. 
+	// "postAttachCommand": "",
+}

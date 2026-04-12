@@ -469,7 +469,19 @@
 /* ─────────────────────────────────────────────────────────────────────────
    Config
 ───────────────────────────────────────────────────────────────────────── */
-const API = '/.netlify/functions/calculate';
+// Auto-detect API endpoint based on environment
+const _proto = window.location.protocol;
+const _host  = window.location.hostname;
+const API = (_proto === 'file:')
+  ? 'http://localhost:8888/api/calculate'           // local dev server
+  : (_host === 'localhost' || _host === '127.0.0.1')
+    ? `${window.location.origin}/api/calculate`     // local_server.py
+    : '/.netlify/functions/calculate';              // Netlify production
+const API_PDF = (_proto === 'file:')
+  ? 'http://localhost:8888/api/export-pdf'
+  : (_host === 'localhost' || _host === '127.0.0.1')
+    ? `${window.location.origin}/api/export-pdf`
+    : '/api/export-pdf';
 let _lastModule = '';
 let _lastData   = null;
 
@@ -814,7 +826,7 @@ async function exportPDF() {
   btn.disabled = true;
 
   try {
-    const res = await fetch('/api/export-pdf', {
+    const res = await fetch(API_PDF, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

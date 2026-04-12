@@ -5,284 +5,204 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Steel Structure Design — ออกแบบโครงสร้างเหล็ก (วสท. 011038-22)</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
+    /* ── Variables ─────────────────────────────────────────────── */
     :root {
-      --navy: #0d1b2a;
-      --blue: #1b4f72;
+      --navy:   #0d1b2a;
+      --blue:   #1b4f72;
       --accent: #2e86ab;
-      --light: #f0f4f8;
-      --pass: #1a7a4a;
-      --fail: #c0392b;
-      --warn: #e67e22;
+      --light:  #f0f4f8;
+      --pass:   #1a7a4a;
+      --fail:   #c0392b;
+      --warn:   #d68910;
+      --pass-bg:#d4f5e4;
+      --fail-bg:#fde8e8;
     }
-
     * { box-sizing: border-box; }
+    body { font-family:'Sarabun',sans-serif; background:var(--light); color:#1a1a2e; font-size:15px; }
 
-    body {
-      font-family: 'Sarabun', sans-serif;
-      background: var(--light);
-      color: #1a1a2e;
-      font-size: 15px;
-    }
-
+    /* ── Header ────────────────────────────────────────────────── */
     header {
-      background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
-      color: #fff;
-      padding: 18px 28px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.35);
+      background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%);
+      color:#fff; padding:14px 24px;
+      display:flex; align-items:center; gap:14px;
+      box-shadow:0 2px 12px rgba(0,0,0,.35);
     }
+    header h1 { margin:0; font-size:1.25rem; font-weight:700; }
+    header p  { margin:0; font-size:.78rem; opacity:.7; }
 
-    header svg { flex-shrink: 0; }
-
-    header h1 { margin: 0; font-size: 1.35rem; font-weight: 700; line-height: 1.3; }
-    header p  { margin: 0; font-size: 0.82rem; opacity: .75; }
-
-    /* Tab bar */
+    /* ── Tab bar ───────────────────────────────────────────────── */
     .tab-bar {
-      background: var(--navy);
-      display: flex;
-      overflow-x: auto;
-      gap: 2px;
-      padding: 0 12px;
+      background:var(--navy);
+      display:flex; overflow-x:auto; gap:2px; padding:0 10px;
     }
-
     .tab-btn {
-      background: none;
-      border: none;
-      color: rgba(255,255,255,.55);
-      padding: 12px 18px;
-      cursor: pointer;
-      font-size: .88rem;
-      font-family: inherit;
-      white-space: nowrap;
-      border-bottom: 3px solid transparent;
-      transition: color .2s, border-color .2s;
+      background:none; border:none; color:rgba(255,255,255,.5);
+      padding:11px 16px; cursor:pointer; font-size:.85rem;
+      font-family:inherit; white-space:nowrap;
+      border-bottom:3px solid transparent;
+      transition:color .2s,border-color .2s;
     }
+    .tab-btn:hover  { color:rgba(255,255,255,.85); }
+    .tab-btn.active { color:#fff; border-bottom-color:var(--accent); }
 
-    .tab-btn:hover  { color: rgba(255,255,255,.85); }
-    .tab-btn.active { color: #fff; border-bottom-color: var(--accent); }
-
-    /* Main layout */
+    /* ── Layout ────────────────────────────────────────────────── */
     .workspace {
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 0;
-      height: calc(100vh - 120px);
+      display:grid; grid-template-columns:330px 1fr;
+      height:calc(100vh - 115px);
     }
-
     .sidebar {
-      background: #fff;
-      border-right: 1px solid #dde3ec;
-      overflow-y: auto;
-      padding: 20px 18px;
+      background:#fff; border-right:1px solid #dde3ec;
+      overflow-y:auto; padding:16px 14px;
     }
+    .results-panel { background:var(--light); overflow-y:auto; padding:18px 20px; }
 
-    .results-panel {
-      background: var(--light);
-      overflow-y: auto;
-      padding: 20px 22px;
+    /* ── Sidebar form ──────────────────────────────────────────── */
+    .sec-title {
+      font-size:.72rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:.06em; color:var(--blue);
+      border-bottom:1px solid #ccd6e0; padding-bottom:4px; margin-bottom:8px;
     }
-
-    /* Form elements */
-    .form-section {
-      margin-bottom: 18px;
+    .form-sec { margin-bottom:16px; }
+    .field-row { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+    .field-row label { flex:1; font-size:.82rem; color:#334; line-height:1.2; }
+    .field-row label small { display:block; font-size:.7rem; color:#888; }
+    .field-row input,.field-row select {
+      width:115px; flex-shrink:0; font-size:.82rem;
+      padding:4px 7px; border:1px solid #c8d0da; border-radius:5px;
+      background:#f8fafc; font-family:inherit;
     }
-
-    .form-section-title {
-      font-size: .78rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: var(--blue);
-      border-bottom: 1px solid #ccd6e0;
-      padding-bottom: 5px;
-      margin-bottom: 10px;
+    .field-row input:focus,.field-row select:focus {
+      outline:none; border-color:var(--accent); background:#fff;
     }
-
-    .field-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 7px;
-    }
-
-    .field-row label {
-      flex: 1;
-      font-size: .85rem;
-      color: #334;
-      line-height: 1.2;
-    }
-
-    .field-row label small {
-      display: block;
-      font-size: .72rem;
-      color: #888;
-    }
-
-    .field-row input,
-    .field-row select {
-      width: 120px;
-      flex-shrink: 0;
-      font-size: .85rem;
-      padding: 4px 8px;
-      border: 1px solid #c8d0da;
-      border-radius: 5px;
-      background: #f8fafc;
-      font-family: inherit;
-    }
-
-    .field-row input:focus,
-    .field-row select:focus {
-      outline: none;
-      border-color: var(--accent);
-      background: #fff;
-    }
-
-    /* Buttons */
     .btn-calc {
-      width: 100%;
-      background: var(--blue);
-      color: #fff;
-      border: none;
-      border-radius: 7px;
-      padding: 10px;
-      font-size: 1rem;
-      font-family: inherit;
-      cursor: pointer;
-      font-weight: 600;
-      margin-top: 6px;
-      transition: background .2s;
+      width:100%; background:var(--blue); color:#fff; border:none;
+      border-radius:7px; padding:10px; font-size:.95rem;
+      font-family:inherit; cursor:pointer; font-weight:700;
+      margin-top:6px; transition:background .2s;
     }
-
-    .btn-calc:hover  { background: var(--accent); }
-    .btn-calc:active { background: var(--navy); }
-
+    .btn-calc:hover  { background:var(--accent); }
     .btn-find {
-      width: 100%;
-      background: #fff;
-      color: var(--blue);
-      border: 1.5px solid var(--blue);
-      border-radius: 7px;
-      padding: 8px;
-      font-size: .88rem;
-      font-family: inherit;
-      cursor: pointer;
-      font-weight: 600;
-      margin-top: 5px;
-      transition: background .2s, color .2s;
+      width:100%; background:#fff; color:var(--blue);
+      border:1.5px solid var(--blue); border-radius:7px; padding:8px;
+      font-size:.85rem; font-family:inherit; cursor:pointer; font-weight:600;
+      margin-top:5px; transition:background .2s,color .2s;
+    }
+    .btn-find:hover { background:var(--blue); color:#fff; }
+
+    /* ── Results panel toolbar ─────────────────────────────────── */
+    .results-toolbar {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:14px;
+    }
+    .results-toolbar h2 { margin:0; font-size:1rem; color:var(--blue); font-weight:700; }
+    .btn-pdf {
+      background:var(--navy); color:#fff; border:none;
+      padding:7px 16px; border-radius:6px; font-size:.82rem;
+      font-family:inherit; cursor:pointer; font-weight:600;
+      display:flex; align-items:center; gap:6px;
+      transition:background .2s;
+    }
+    .btn-pdf:hover { background:var(--accent); }
+    .btn-pdf svg { flex-shrink:0; }
+
+    /* ── Result card ───────────────────────────────────────────── */
+    .rcard {
+      background:#fff; border-radius:10px; padding:18px 20px;
+      margin-bottom:14px; box-shadow:0 1px 6px rgba(0,0,0,.07);
+    }
+    .rcard h3 {
+      font-size:.95rem; font-weight:700; color:var(--blue);
+      margin:0 0 12px; border-bottom:1px solid #e8edf4; padding-bottom:7px;
     }
 
-    .btn-find:hover { background: var(--blue); color: #fff; }
+    /* ── Status badge ──────────────────────────────────────────── */
+    .badge-pass { display:inline-block; padding:5px 14px; border-radius:20px; font-weight:700; font-size:.9rem; background:var(--pass-bg); color:var(--pass); }
+    .badge-fail { display:inline-block; padding:5px 14px; border-radius:20px; font-weight:700; font-size:.9rem; background:var(--fail-bg); color:var(--fail); }
 
-    /* Results */
-    .result-card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 20px 22px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 6px rgba(0,0,0,.07);
+    /* ── Summary check rows ────────────────────────────────────── */
+    .chk-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px dashed #e8edf4; font-size:.85rem; }
+    .chk-row:last-child { border:none; }
+    .ratio-bar { height:7px; background:#e8edf4; border-radius:4px; overflow:hidden; margin-top:3px; }
+    .ratio-fill { height:100%; border-radius:4px; transition:width .5s; }
+    .fill-pass { background:var(--pass); }
+    .fill-warn { background:var(--warn); }
+    .fill-fail { background:var(--fail); }
+
+    /* ── Formula step cards ────────────────────────────────────── */
+    .step-card { margin-bottom:14px; }
+    .step-title {
+      background:var(--blue); color:#fff; padding:8px 14px;
+      border-radius:8px 8px 0 0; font-size:.88rem; font-weight:700;
     }
-
-    .result-card h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--blue);
-      margin: 0 0 14px;
-      border-bottom: 1px solid #e8edf4;
-      padding-bottom: 8px;
+    .step-subtitle {
+      background:#e8f0f8; color:var(--blue); padding:5px 14px;
+      font-size:.78rem; font-style:italic;
     }
+    .step-body { background:#fff; border:1px solid #dde3ec; border-top:none; border-radius:0 0 8px 8px; overflow:hidden; }
 
-    .status-badge {
-      display: inline-block;
-      padding: 5px 14px;
-      border-radius: 20px;
-      font-weight: 700;
-      font-size: .92rem;
-    }
+    /* Formula table */
+    .ftable { width:100%; border-collapse:collapse; font-size:.82rem; }
+    .ftable thead tr { background:#f4f7fb; }
+    .ftable th { padding:6px 10px; font-weight:700; color:#445; border-bottom:1px solid #dde3ec; }
+    .ftable td { padding:5px 10px; border-bottom:1px solid #f0f4f8; vertical-align:top; }
+    .ftable tr:last-child td { border-bottom:none; }
+    .ftable tr.check-pass { background:#f0fdf6; }
+    .ftable tr.check-fail { background:#fef2f2; }
+    .sym { font-family:'Fira Mono',monospace; font-weight:600; color:var(--blue); white-space:nowrap; }
+    .formula-txt { font-family:'Fira Mono',monospace; color:#555; }
+    .sub-txt { font-family:'Fira Mono',monospace; color:#777; font-size:.78rem; }
+    .val-txt { font-family:'Fira Mono',monospace; font-weight:700; color:#1a1a2e; text-align:right; }
+    .val-pass { color:var(--pass); }
+    .val-fail { color:var(--fail); }
+    .unit-txt { color:#888; font-size:.75rem; }
+    .check-icon { font-size:1rem; }
 
-    .status-pass { background: #d4f5e4; color: var(--pass); }
-    .status-fail { background: #fde8e8; color: var(--fail); }
+    /* Load case table */
+    .lc-table { width:100%; border-collapse:collapse; font-size:.78rem; }
+    .lc-table th { background:#f4f7fb; padding:5px 8px; font-weight:700; border-bottom:1px solid #dde3ec; }
+    .lc-table td { padding:4px 8px; border-bottom:1px solid #f0f4f8; }
+    .lc-table tr.crit { background:#fff8e8; font-weight:700; }
+    .lc-table tr.fail { background:#fef2f2; }
 
-    .check-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 5px 0;
-      border-bottom: 1px dashed #e8edf4;
-      font-size: .87rem;
-    }
+    /* Full report */
+    pre.rpt { background:#1a1a2e; color:#a8d8ea; border-radius:8px; padding:14px; font-size:.74rem; line-height:1.65; white-space:pre-wrap; word-break:break-word; max-height:420px; overflow-y:auto; font-family:'Fira Mono',monospace; }
+    .collapsible { cursor:pointer; user-select:none; }
+    .collapsible::after { content:' ▼'; font-size:.7rem; }
+    .collapsible.open::after { content:' ▲'; }
 
-    .check-row:last-child { border: none; }
-
-    .ratio-bar {
-      width: 100%;
-      height: 8px;
-      background: #e8edf4;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 4px;
-    }
-
-    .ratio-fill {
-      height: 100%;
-      border-radius: 4px;
-      transition: width .5s;
-    }
-
-    .fill-pass { background: var(--pass); }
-    .fill-warn { background: var(--warn); }
-    .fill-fail { background: var(--fail); }
-
-    pre.report-text {
-      background: #1a1a2e;
-      color: #a8d8ea;
-      border-radius: 8px;
-      padding: 16px;
-      font-size: .78rem;
-      line-height: 1.6;
-      white-space: pre-wrap;
-      word-break: break-word;
-      max-height: 500px;
-      overflow-y: auto;
-    }
-
-    .placeholder {
-      text-align: center;
-      color: #aaa;
-      padding: 60px 20px;
-    }
-
-    .placeholder svg { opacity: .25; margin-bottom: 12px; }
+    /* Placeholder */
+    .placeholder { text-align:center; color:#aaa; padding:60px 20px; }
+    .placeholder svg { opacity:.2; margin-bottom:10px; }
 
     /* Spinner */
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255,255,255,.4);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:5px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
 
     /* Tab panels */
-    .tab-panel { display: none; }
-    .tab-panel.active { display: contents; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:contents; }
 
-    @media (max-width: 768px) {
-      .workspace {
-        grid-template-columns: 1fr;
-        height: auto;
-      }
-      .sidebar { border-right: none; border-bottom: 1px solid #dde3ec; }
+    /* ── PRINT / PDF ────────────────────────────────────────────── */
+    @media print {
+      header, .tab-bar, .sidebar, .results-toolbar .btn-pdf,
+      .btn-calc, .btn-find, .placeholder { display:none !important; }
+      body { background:#fff; font-size:11pt; }
+      .workspace { display:block; height:auto; }
+      .results-panel { padding:0; overflow:visible; }
+      .rcard, .step-card { box-shadow:none; border:1px solid #ccc; page-break-inside:avoid; }
+      .step-title { background:#1b4f72 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      pre.rpt { max-height:none; }
+      .print-header { display:block !important; }
+    }
+    .print-header { display:none; border-bottom:2px solid var(--navy); padding-bottom:10px; margin-bottom:16px; }
+    .print-header h2 { margin:0; color:var(--navy); font-size:1.3rem; }
+    .print-header p  { margin:4px 0 0; font-size:.85rem; color:#555; }
+
+    @media (max-width:768px) {
+      .workspace { grid-template-columns:1fr; height:auto; }
+      .sidebar { border-right:none; border-bottom:1px solid #dde3ec; }
     }
   </style>
 </head>
@@ -290,7 +210,7 @@
 
 <!-- Header -->
 <header>
-  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+  <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
     <rect width="40" height="40" rx="8" fill="rgba(255,255,255,.12)"/>
     <rect x="6" y="30" width="28" height="3" fill="#fff" rx="1"/>
     <rect x="10" y="10" width="4" height="20" fill="#2e86ab" rx="1"/>
@@ -299,651 +219,582 @@
   </svg>
   <div>
     <h1>โปรแกรมออกแบบโครงสร้างเหล็ก · Steel Structure Design</h1>
-    <p>วสท. 011038-22 &nbsp;|&nbsp; ASD Method &nbsp;|&nbsp; Powered by Thai Engineering Standards</p>
+    <p>วสท. 011038-22 &nbsp;|&nbsp; ASD Method &nbsp;|&nbsp; Thai Engineering Standards</p>
   </div>
 </header>
 
 <!-- Tab Bar -->
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('purlin')">ออกแบบแป (Purlin)</button>
-  <button class="tab-btn" onclick="switchTab('beam')">ออกแบบคาน (Beam)</button>
-  <button class="tab-btn" onclick="switchTab('column')">ออกแบบเสา (Column)</button>
-  <button class="tab-btn" onclick="switchTab('connection')">รอยต่อ (Connection)</button>
-  <button class="tab-btn" onclick="switchTab('baseplate')">แผ่นฐาน (Base Plate)</button>
+  <button class="tab-btn active" onclick="switchTab('purlin',this)">ออกแบบแป (Purlin)</button>
+  <button class="tab-btn" onclick="switchTab('beam',this)">ออกแบบคาน (Beam)</button>
+  <button class="tab-btn" onclick="switchTab('column',this)">ออกแบบเสา (Column)</button>
+  <button class="tab-btn" onclick="switchTab('connection',this)">รอยต่อ (Connection)</button>
+  <button class="tab-btn" onclick="switchTab('baseplate',this)">แผ่นฐาน (Base Plate)</button>
 </div>
 
-<!-- Workspace -->
 <div class="workspace">
 
-  <!-- ============================================================ PURLIN ============================================================ -->
-  <div class="sidebar tab-panel active" id="sidebar-purlin">
-    <div class="form-section">
-      <div class="form-section-title">หน้าตัดเหล็ก · Section</div>
-      <div class="field-row">
-        <label>หน้าตัด C-Channel</label>
-        <select id="p-section" style="width:150px">
-          <option>C150x65x20x4.0</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">เรขาคณิต · Geometry</div>
-      <div class="field-row"><label>ความยาวช่วงแป (m)<small>Span</small></label><input type="number" id="p-span" value="6.0" step="0.1" min="0.1"></div>
-      <div class="field-row"><label>ระยะห่างแป (m)<small>Spacing</small></label><input type="number" id="p-spacing" value="1.2" step="0.1" min="0.1"></div>
-      <div class="field-row"><label>มุมลาดชันหลังคา (°)<small>Roof Slope</small></label><input type="number" id="p-slope" value="15.0" step="0.5" min="0"></div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">น้ำหนักบรรทุก · Loads</div>
-      <div class="field-row"><label>DL - คงที่ (kPa)<small>Dead Load</small></label><input type="number" id="p-dl" value="0.147" step="0.01" min="0"></div>
-      <div class="field-row"><label>LL - จร (kPa)<small>Live Load</small></label><input type="number" id="p-ll" value="0.50" step="0.05" min="0"></div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">น้ำหนักลม · Wind Load</div>
-      <div class="field-row"><label>ความเร็วลม V (m/s)<small>Basic Wind Speed</small></label><input type="number" id="p-wind" value="30.0" step="1" min="0"></div>
-      <div class="field-row"><label>ความสูงอาคาร (m)<small>Building Height</small></label><input type="number" id="p-height" value="6.0" step="0.5" min="0"></div>
-      <div class="field-row">
-        <label>ประเภทสภาพภูมิ<small>Exposure Category</small></label>
-        <select id="p-exposure"><option>B</option><option selected>C</option><option>D</option></select>
-      </div>
-      <div class="field-row"><label>Cpi (+)<small>Internal Pressure +</small></label><input type="number" id="p-cpi-pos" value="0.18" step="0.01"></div>
-      <div class="field-row"><label>Cpi (-)<small>Internal Pressure −</small></label><input type="number" id="p-cpi-neg" value="-0.18" step="0.01"></div>
-    </div>
-
-    <button class="btn-calc" onclick="calculate('purlin')" id="btn-purlin">คำนวณ (Calculate)</button>
-    <button class="btn-find" onclick="findSection('purlin')">ค้นหาหน้าตัดประหยัดสุด</button>
+<!-- ══════════════════════ PURLIN SIDEBAR ══════════════════════ -->
+<div class="sidebar tab-panel active" id="sidebar-purlin">
+  <div class="form-sec">
+    <div class="sec-title">หน้าตัด C-Channel</div>
+    <div class="field-row"><label>หน้าตัด</label><select id="p-section" style="width:150px"><option>C150x65x20x4.0</option></select></div>
   </div>
-
-  <!-- ============================================================ BEAM ============================================================ -->
-  <div class="sidebar tab-panel" id="sidebar-beam">
-    <div class="form-section">
-      <div class="form-section-title">หน้าตัดเหล็ก · Section</div>
-      <div class="field-row">
-        <label>หน้าตัด H/I-Beam</label>
-        <select id="b-section" style="width:150px"></select>
-      </div>
-      <div class="field-row">
-        <label>รูปแบบคาน<small>Beam Type</small></label>
-        <select id="b-cantilever"><option value="false">Simply Supported</option><option value="true">Cantilever</option></select>
-      </div>
-      <div class="field-row">
-        <label>การค้ำยันด้านข้าง<small>Lateral Bracing</small></label>
-        <select id="b-bracing">
-          <option value="continuous">Continuous</option>
-          <option value="ends_only">Ends Only</option>
-          <option value="intermediate">Intermediate</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">เรขาคณิต · Geometry</div>
-      <div class="field-row"><label>ความยาวช่วงคาน (m)<small>Span</small></label><input type="number" id="b-span" value="6.0" step="0.1" min="0.1"></div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">น้ำหนักบรรทุกแผ่ (kN/m)</div>
-      <div class="field-row"><label>DL - คงที่<small>Dead Load</small></label><input type="number" id="b-dl" value="10" step="1" min="0"></div>
-      <div class="field-row"><label>LL - จร<small>Live Load</small></label><input type="number" id="b-ll" value="20" step="1" min="0"></div>
-      <div class="field-row"><label>WL - ลม<small>Wind Load</small></label><input type="number" id="b-wl" value="0" step="1" min="0"></div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">แรงกระทำจุด (kN) — กึ่งกลาง</div>
-      <div class="field-row"><label>Point DL</label><input type="number" id="b-pdl" value="0" step="1" min="0"></div>
-      <div class="field-row"><label>Point LL</label><input type="number" id="b-pll" value="0" step="1" min="0"></div>
-    </div>
-
-    <button class="btn-calc" onclick="calculate('beam')" id="btn-beam">คำนวณ (Calculate)</button>
+  <div class="form-sec">
+    <div class="sec-title">เรขาคณิต</div>
+    <div class="field-row"><label>ความยาวช่วงแป (m)<small>Span</small></label><input type="number" id="p-span" value="6.0" step="0.1" min="0.1"></div>
+    <div class="field-row"><label>ระยะห่างแป (m)<small>Spacing</small></label><input type="number" id="p-spacing" value="1.2" step="0.1" min="0.1"></div>
+    <div class="field-row"><label>มุมลาดชันหลังคา (°)<small>Slope</small></label><input type="number" id="p-slope" value="15.0" step="0.5" min="0"></div>
   </div>
-
-  <!-- ============================================================ COLUMN ============================================================ -->
-  <div class="sidebar tab-panel" id="sidebar-column">
-    <div class="form-section">
-      <div class="form-section-title">หน้าตัดเหล็ก · Section</div>
-      <div class="field-row">
-        <label>หน้าตัด H-Beam</label>
-        <select id="c-section" style="width:150px"></select>
-      </div>
-      <div class="field-row">
-        <label>ชนิดโครงสร้าง<small>Frame Type</small></label>
-        <select id="c-braced"><option value="true">Braced Frame</option><option value="false">Unbraced Frame</option></select>
-      </div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">เรขาคณิต · Geometry</div>
-      <div class="field-row"><label>ความสูงเสา (m)<small>Height</small></label><input type="number" id="c-height" value="4.0" step="0.1" min="0.1"></div>
-      <div class="field-row"><label>Kx — ค่า Effective Length<small>About x-axis</small></label><input type="number" id="c-kx" value="1.0" step="0.1" min="0.1"></div>
-      <div class="field-row"><label>Ky<small>About y-axis</small></label><input type="number" id="c-ky" value="1.0" step="0.1" min="0.1"></div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">น้ำหนักแนวแกน (kN)</div>
-      <div class="field-row"><label>Axial DL</label><input type="number" id="c-adl" value="100" step="10" min="0"></div>
-      <div class="field-row"><label>Axial LL</label><input type="number" id="c-all" value="150" step="10" min="0"></div>
-      <div class="field-row"><label>Axial WL</label><input type="number" id="c-awl" value="0" step="10" min="0"></div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">โมเมนต์ดัด (kN·m)</div>
-      <div class="field-row"><label>Mx DL</label><input type="number" id="c-mxdl" value="0" step="1"></div>
-      <div class="field-row"><label>Mx LL</label><input type="number" id="c-mxll" value="0" step="1"></div>
-      <div class="field-row"><label>My DL</label><input type="number" id="c-mydl" value="0" step="1"></div>
-      <div class="field-row"><label>My LL</label><input type="number" id="c-myll" value="0" step="1"></div>
-    </div>
-
-    <button class="btn-calc" onclick="calculate('column')" id="btn-column">คำนวณ (Calculate)</button>
+  <div class="form-sec">
+    <div class="sec-title">น้ำหนักบรรทุก</div>
+    <div class="field-row"><label>DL - คงที่ (kPa)</label><input type="number" id="p-dl" value="0.147" step="0.01" min="0"></div>
+    <div class="field-row"><label>LL - จร (kPa)</label><input type="number" id="p-ll" value="0.50" step="0.05" min="0"></div>
   </div>
-
-  <!-- ============================================================ CONNECTION ============================================================ -->
-  <div class="sidebar tab-panel" id="sidebar-connection">
-    <div class="form-section">
-      <div class="form-section-title">ชนิดรอยต่อ · Type</div>
-      <div class="field-row">
-        <label>ประเภท</label>
-        <select id="cn-type" onchange="toggleConnectionType()" style="width:150px">
-          <option value="bolted">Bolted (สลักเกลียว)</option>
-          <option value="welded">Welded (เชื่อม)</option>
-        </select>
-      </div>
-    </div>
-
-    <div id="bolted-fields">
-      <div class="form-section">
-        <div class="form-section-title">สลักเกลียว · Bolt</div>
-        <div class="field-row"><label>ขนาดสลักเกลียว</label><select id="cn-bolt" style="width:100px"></select></div>
-        <div class="field-row"><label>จำนวนสลักเกลียว<small>No. of Bolts</small></label><input type="number" id="cn-nbolt" value="4" step="1" min="1"></div>
-        <div class="field-row"><label>ความหนาแผ่นเชื่อมต่อ (mm)<small>Plate thickness</small></label><input type="number" id="cn-plt" value="10" step="1" min="1"></div>
-        <div class="field-row">
-          <label>ชนิดการรับแรงเฉือน<small>Shear type</small></label>
-          <select id="cn-btype"><option value="single_shear">Single Shear</option><option value="double_shear">Double Shear</option></select>
-        </div>
-      </div>
-    </div>
-
-    <div id="welded-fields" style="display:none">
-      <div class="form-section">
-        <div class="form-section-title">รอยเชื่อม · Weld</div>
-        <div class="field-row"><label>ประเภทลวดเชื่อม</label><select id="cn-weld" style="width:100px"></select></div>
-        <div class="field-row"><label>ความยาวรอยเชื่อม (mm)<small>Weld Length</small></label><input type="number" id="cn-wlen" value="100" step="10" min="10"></div>
-        <div class="field-row"><label>ขนาด Throat (mm)</label><input type="number" id="cn-throat" value="6" step="1" min="3"></div>
-      </div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">น้ำหนักบรรทุก · Loads (kN)</div>
-      <div class="field-row"><label>Shear DL</label><input type="number" id="cn-sdl" value="30" step="5" min="0"></div>
-      <div class="field-row"><label>Shear LL</label><input type="number" id="cn-sll" value="50" step="5" min="0"></div>
-      <div class="field-row"><label>Axial DL</label><input type="number" id="cn-adl" value="0" step="5"></div>
-      <div class="field-row"><label>Axial LL</label><input type="number" id="cn-all" value="0" step="5"></div>
-    </div>
-
-    <button class="btn-calc" onclick="calculate('connection')" id="btn-connection">คำนวณ (Calculate)</button>
+  <div class="form-sec">
+    <div class="sec-title">น้ำหนักลม</div>
+    <div class="field-row"><label>ความเร็วลม V (m/s)</label><input type="number" id="p-wind" value="30.0" step="1" min="0"></div>
+    <div class="field-row"><label>ความสูงอาคาร (m)</label><input type="number" id="p-height" value="6.0" step="0.5" min="0"></div>
+    <div class="field-row"><label>ประเภทสภาพภูมิ</label><select id="p-exposure"><option>B</option><option selected>C</option><option>D</option></select></div>
+    <div class="field-row"><label>Cpi (+)</label><input type="number" id="p-cpi-pos" value="0.18" step="0.01"></div>
+    <div class="field-row"><label>Cpi (-)</label><input type="number" id="p-cpi-neg" value="-0.18" step="0.01"></div>
   </div>
-
-  <!-- ============================================================ BASE PLATE ============================================================ -->
-  <div class="sidebar tab-panel" id="sidebar-baseplate">
-    <div class="form-section">
-      <div class="form-section-title">หน้าตัดเสา · Column Section</div>
-      <div class="field-row">
-        <label>หน้าตัด H-Beam</label>
-        <select id="bp-section" style="width:150px"></select>
-      </div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">ขนาดแผ่นฐาน (mm) · Plate Size</div>
-      <div class="field-row"><label>ความกว้าง B (mm)</label><input type="number" id="bp-b" value="250" step="10" min="50"></div>
-      <div class="field-row"><label>ความยาว N (mm)</label><input type="number" id="bp-n" value="250" step="10" min="50"></div>
-      <div class="field-row"><label>ความหนา t (mm)</label><input type="number" id="bp-t" value="20" step="2" min="6"></div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">คอนกรีตฐาน · Concrete</div>
-      <div class="field-row"><label>f'c — กำลังคอนกรีต (MPa)</label><input type="number" id="bp-fc" value="21" step="1" min="15"></div>
-      <div class="field-row"><label>จำนวน Anchor Bolts</label><input type="number" id="bp-nab" value="4" step="1" min="2"></div>
-      <div class="field-row"><label>ขนาด Anchor Bolt (mm)</label><input type="number" id="bp-abd" value="20" step="2" min="12"></div>
-    </div>
-
-    <div class="form-section">
-      <div class="form-section-title">น้ำหนักบรรทุก · Loads</div>
-      <div class="field-row"><label>Axial DL (kN)</label><input type="number" id="bp-adl" value="100" step="10" min="0"></div>
-      <div class="field-row"><label>Axial LL (kN)</label><input type="number" id="bp-all" value="150" step="10" min="0"></div>
-      <div class="field-row"><label>Moment x DL (kN·m)</label><input type="number" id="bp-mxdl" value="0" step="1"></div>
-      <div class="field-row"><label>Moment x LL (kN·m)</label><input type="number" id="bp-mxll" value="0" step="1"></div>
-      <div class="field-row"><label>Shear x DL (kN)</label><input type="number" id="bp-sxdl" value="0" step="5" min="0"></div>
-      <div class="field-row"><label>Shear x LL (kN)</label><input type="number" id="bp-sxll" value="0" step="5" min="0"></div>
-    </div>
-
-    <button class="btn-calc" onclick="calculate('baseplate')" id="btn-baseplate">คำนวณ (Calculate)</button>
-  </div>
-
-  <!-- Results panel (shared) -->
-  <div class="results-panel" id="results-panel">
-    <div class="placeholder" id="placeholder">
-      <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-        <circle cx="32" cy="32" r="30" stroke="#666" stroke-width="2" fill="none"/>
-        <path d="M20 40V28l12-8 12 8v12" stroke="#666" stroke-width="2" fill="none"/>
-        <rect x="26" y="34" width="12" height="8" stroke="#666" stroke-width="2" fill="none"/>
-      </svg>
-      <p style="font-size:1rem;font-weight:600;margin:0 0 6px">ยังไม่มีผลการคำนวณ</p>
-      <p style="font-size:.85rem">กรอกข้อมูลทางซ้ายแล้วกด <em>คำนวณ</em></p>
-    </div>
-    <div id="results-content" style="display:none"></div>
-  </div>
-
+  <button class="btn-calc" onclick="calculate('purlin')" id="btn-purlin">คำนวณ (Calculate)</button>
+  <button class="btn-find" onclick="findSection('purlin')">ค้นหาหน้าตัดประหยัดสุด</button>
 </div>
 
+<!-- ══════════════════════ BEAM SIDEBAR ══════════════════════ -->
+<div class="sidebar tab-panel" id="sidebar-beam">
+  <div class="form-sec">
+    <div class="sec-title">หน้าตัด H/I-Beam</div>
+    <div class="field-row"><label>หน้าตัด</label><select id="b-section" style="width:150px"></select></div>
+    <div class="field-row"><label>รูปแบบคาน</label><select id="b-cantilever"><option value="false">Simply Supported</option><option value="true">Cantilever</option></select></div>
+    <div class="field-row"><label>การค้ำยันด้านข้าง</label><select id="b-bracing"><option value="continuous">Continuous</option><option value="ends_only">Ends Only</option><option value="intermediate">Intermediate</option></select></div>
+  </div>
+  <div class="form-sec">
+    <div class="sec-title">เรขาคณิต</div>
+    <div class="field-row"><label>ความยาวช่วงคาน (m)</label><input type="number" id="b-span" value="6.0" step="0.1" min="0.1"></div>
+  </div>
+  <div class="form-sec">
+    <div class="sec-title">น้ำหนักแผ่ (kN/m)</div>
+    <div class="field-row"><label>DL</label><input type="number" id="b-dl" value="10" step="1" min="0"></div>
+    <div class="field-row"><label>LL</label><input type="number" id="b-ll" value="20" step="1" min="0"></div>
+    <div class="field-row"><label>WL</label><input type="number" id="b-wl" value="0" step="1" min="0"></div>
+  </div>
+  <div class="form-sec">
+    <div class="sec-title">แรงกระทำจุด กึ่งกลาง (kN)</div>
+    <div class="field-row"><label>Point DL</label><input type="number" id="b-pdl" value="0" step="1" min="0"></div>
+    <div class="field-row"><label>Point LL</label><input type="number" id="b-pll" value="0" step="1" min="0"></div>
+  </div>
+  <button class="btn-calc" onclick="calculate('beam')" id="btn-beam">คำนวณ (Calculate)</button>
+</div>
+
+<!-- ══════════════════════ COLUMN SIDEBAR ══════════════════════ -->
+<div class="sidebar tab-panel" id="sidebar-column">
+  <div class="form-sec">
+    <div class="sec-title">หน้าตัด H-Beam</div>
+    <div class="field-row"><label>หน้าตัด</label><select id="c-section" style="width:150px"></select></div>
+    <div class="field-row"><label>ชนิดโครงสร้าง</label><select id="c-braced"><option value="true">Braced Frame</option><option value="false">Unbraced Frame</option></select></div>
+  </div>
+  <div class="form-sec">
+    <div class="sec-title">เรขาคณิต</div>
+    <div class="field-row"><label>ความสูงเสา (m)</label><input type="number" id="c-height" value="4.0" step="0.1" min="0.1"></div>
+    <div class="field-row"><label>Kx</label><input type="number" id="c-kx" value="1.0" step="0.1" min="0.1"></div>
+    <div class="field-row"><label>Ky</label><input type="number" id="c-ky" value="1.0" step="0.1" min="0.1"></div>
+  </div>
+  <div class="form-sec">
+    <div class="sec-title">น้ำหนักแนวแกน (kN)</div>
+    <div class="field-row"><label>Axial DL</label><input type="number" id="c-adl" value="100" step="10" min="0"></div>
+    <div class="field-row"><label>Axial LL</label><input type="number" id="c-all" value="150" step="10" min="0"></div>
+    <div class="field-row"><label>Axial WL</label><input type="number" id="c-awl" value="0" step="10" min="0"></div>
+  </div>
+  <div class="form-sec">
+    <div class="sec-title">โมเมนต์ดัด (kN·m)</div>
+    <div class="field-row"><label>Mx DL</label><input type="number" id="c-mxdl" value="0" step="1"></div>
+    <div class="field-row"><label>Mx LL</label><input type="number" id="c-mxll" value="0" step="1"></div>
+    <div class="field-row"><label>My DL</label><input type="number" id="c-mydl" value="0" step="1"></div>
+    <div class="field-row"><label>My LL</label><input type="number" id="c-myll" value="0" step="1"></div>
+  </div>
+  <button class="btn-calc" onclick="calculate('column')" id="btn-column">คำนวณ (Calculate)</button>
+</div>
+
+<!-- ══════════════════════ CONNECTION SIDEBAR ══════════════════════ -->
+<div class="sidebar tab-panel" id="sidebar-connection">
+  <div class="form-sec">
+    <div class="sec-title">ชนิดรอยต่อ</div>
+    <div class="field-row"><label>ประเภท</label><select id="cn-type" onchange="toggleConn()" style="width:130px"><option value="bolted">Bolted</option><option value="welded">Welded</option></select></div>
+  </div>
+  <div id="bolted-fields">
+    <div class="form-sec">
+      <div class="sec-title">สลักเกลียว</div>
+      <div class="field-row"><label>ขนาด</label><select id="cn-bolt" style="width:100px"></select></div>
+      <div class="field-row"><label>จำนวน</label><input type="number" id="cn-nbolt" value="4" step="1" min="1"></div>
+      <div class="field-row"><label>ความหนาแผ่น (mm)</label><input type="number" id="cn-plt" value="10" step="1" min="1"></div>
+      <div class="field-row"><label>ชนิดแรงเฉือน</label><select id="cn-btype"><option value="single_shear">Single Shear</option><option value="double_shear">Double Shear</option></select></div>
+    </div>
+  </div>
+  <div id="welded-fields" style="display:none">
+    <div class="form-sec">
+      <div class="sec-title">รอยเชื่อม</div>
+      <div class="field-row"><label>ลวดเชื่อม</label><select id="cn-weld" style="width:100px"></select></div>
+      <div class="field-row"><label>ความยาว (mm)</label><input type="number" id="cn-wlen" value="100" step="10" min="10"></div>
+      <div class="field-row"><label>Throat (mm)</label><input type="number" id="cn-throat" value="6" step="1" min="3"></div>
+    </div>
+  </div>
+  <div class="form-sec">
+    <div class="sec-title">น้ำหนักบรรทุก (kN)</div>
+    <div class="field-row"><label>Shear DL</label><input type="number" id="cn-sdl" value="30" step="5" min="0"></div>
+    <div class="field-row"><label>Shear LL</label><input type="number" id="cn-sll" value="50" step="5" min="0"></div>
+    <div class="field-row"><label>Axial DL</label><input type="number" id="cn-adl" value="0" step="5"></div>
+    <div class="field-row"><label>Axial LL</label><input type="number" id="cn-all" value="0" step="5"></div>
+  </div>
+  <button class="btn-calc" onclick="calculate('connection')" id="btn-connection">คำนวณ (Calculate)</button>
+</div>
+
+<!-- ══════════════════════ BASEPLATE SIDEBAR ══════════════════════ -->
+<div class="sidebar tab-panel" id="sidebar-baseplate">
+  <div class="form-sec">
+    <div class="sec-title">หน้าตัดเสา</div>
+    <div class="field-row"><label>หน้าตัด H-Beam</label><select id="bp-section" style="width:150px"></select></div>
+  </div>
+  <div class="form-sec">
+    <div class="sec-title">ขนาดแผ่นฐาน (mm)</div>
+    <div class="field-row"><label>ความกว้าง B</label><input type="number" id="bp-b" value="250" step="10" min="50"></div>
+    <div class="field-row"><label>ความยาว N</label><input type="number" id="bp-n" value="250" step="10" min="50"></div>
+    <div class="field-row"><label>ความหนา t</label><input type="number" id="bp-t" value="20" step="2" min="6"></div>
+  </div>
+  <div class="form-sec">
+    <div class="sec-title">คอนกรีต</div>
+    <div class="field-row"><label>f'c (MPa)</label><input type="number" id="bp-fc" value="21" step="1" min="15"></div>
+    <div class="field-row"><label>จำนวน Anchor Bolts</label><input type="number" id="bp-nab" value="4" step="1" min="2"></div>
+    <div class="field-row"><label>ขนาด Anchor Bolt (mm)</label><input type="number" id="bp-abd" value="20" step="2" min="12"></div>
+  </div>
+  <div class="form-sec">
+    <div class="sec-title">น้ำหนักบรรทุก</div>
+    <div class="field-row"><label>Axial DL (kN)</label><input type="number" id="bp-adl" value="100" step="10" min="0"></div>
+    <div class="field-row"><label>Axial LL (kN)</label><input type="number" id="bp-all" value="150" step="10" min="0"></div>
+    <div class="field-row"><label>Moment DL (kN·m)</label><input type="number" id="bp-mxdl" value="0" step="1"></div>
+    <div class="field-row"><label>Moment LL (kN·m)</label><input type="number" id="bp-mxll" value="0" step="1"></div>
+    <div class="field-row"><label>Shear DL (kN)</label><input type="number" id="bp-sxdl" value="0" step="5" min="0"></div>
+    <div class="field-row"><label>Shear LL (kN)</label><input type="number" id="bp-sxll" value="0" step="5" min="0"></div>
+  </div>
+  <button class="btn-calc" onclick="calculate('baseplate')" id="btn-baseplate">คำนวณ (Calculate)</button>
+</div>
+
+<!-- ══════════════════════ RESULTS PANEL ══════════════════════ -->
+<div class="results-panel" id="results-panel">
+
+  <!-- Print-only header -->
+  <div class="print-header" id="print-header">
+    <h2 id="print-title">รายการคำนวณโครงสร้างเหล็ก</h2>
+    <p id="print-meta"></p>
+  </div>
+
+  <div class="results-toolbar">
+    <h2 id="panel-title">ผลการคำนวณ</h2>
+    <button class="btn-pdf" onclick="exportPDF()" id="btn-pdf" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Export PDF
+    </button>
+  </div>
+
+  <div class="placeholder" id="placeholder">
+    <svg width="60" height="60" viewBox="0 0 64 64" fill="none">
+      <circle cx="32" cy="32" r="30" stroke="#888" stroke-width="2" fill="none"/>
+      <path d="M20 40V28l12-8 12 8v12" stroke="#888" stroke-width="2" fill="none"/>
+      <rect x="26" y="34" width="12" height="8" stroke="#888" stroke-width="2" fill="none"/>
+    </svg>
+    <p style="font-size:.95rem;font-weight:600;margin:8px 0 4px">ยังไม่มีผลการคำนวณ</p>
+    <p style="font-size:.82rem">กรอกข้อมูลด้านซ้าย แล้วกด <em>คำนวณ</em></p>
+  </div>
+
+  <div id="results-content" style="display:none"></div>
+
+</div><!-- end results-panel -->
+
+</div><!-- end workspace -->
+
 <script>
-  /* ------------------------------------------------------------------ */
-  /* Config                                                               */
-  /* ------------------------------------------------------------------ */
-  const API = '/.netlify/functions/calculate';
+/* ─────────────────────────────────────────────────────────────────────────
+   Config
+───────────────────────────────────────────────────────────────────────── */
+const API = '/.netlify/functions/calculate';
+let _lastModule = '';
+let _lastData   = null;
 
-  /* ------------------------------------------------------------------ */
-  /* Startup — load section lists                                         */
-  /* ------------------------------------------------------------------ */
-  async function loadSections() {
-    try {
-      const res = await fetch(API, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({module:'sections', inputs:{}})
-      });
-      const data = await res.json();
-      populateSelect('p-section',  data.purlin_sections || data.c_channels || []);
-      populateSelect('b-section',  [...(data.h_beams||[]), ...(data.i_beams||[])]);
-      populateSelect('c-section',  data.h_beams || []);
-      populateSelect('bp-section', data.h_beams || []);
-      populateSelect('cn-bolt',    data.bolts || []);
-      populateSelect('cn-weld',    data.welds || []);
-      // Set defaults
-      setDefault('p-section', 'C150x65x20x4.0');
-      setDefault('b-section', 'H200x200');
-      setDefault('c-section', 'H200x200');
-      setDefault('bp-section','H200x200');
-    } catch(e) {
-      console.warn('Could not load sections:', e);
-    }
+/* ─────────────────────────────────────────────────────────────────────────
+   Startup — load section lists
+───────────────────────────────────────────────────────────────────────── */
+async function loadSections() {
+  try {
+    const res  = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({module:'sections',inputs:{}}) });
+    const data = await res.json();
+    pop('p-section',  data.purlin_sections || data.c_channels || []);
+    pop('b-section',  [...(data.h_beams||[]), ...(data.i_beams||[])]);
+    pop('c-section',  data.h_beams || []);
+    pop('bp-section', data.h_beams || []);
+    pop('cn-bolt',    data.bolts   || []);
+    pop('cn-weld',    data.welds   || []);
+    setDef('p-section',  'C150x65x20x4.0');
+    setDef('b-section',  'H');
+    setDef('c-section',  'H');
+    setDef('bp-section', 'H');
+  } catch(e) { console.warn('Section load failed:', e); }
+}
+function pop(id, list) {
+  const el = document.getElementById(id);
+  if (!el || !list.length) return;
+  el.innerHTML = list.map(v=>`<option value="${v}">${v}</option>`).join('');
+}
+function setDef(id, prefix) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const opt = [...el.options].find(o => o.value.startsWith(prefix));
+  if (opt) el.value = opt.value;
+}
+loadSections();
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Tab switching
+───────────────────────────────────────────────────────────────────────── */
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.sidebar.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'sidebar-'+name);
+  });
+  showPlaceholder();
+  _lastModule = name;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Calculate
+───────────────────────────────────────────────────────────────────────── */
+async function calculate(mod) {
+  const btn = document.getElementById('btn-'+mod);
+  btn.innerHTML = '<span class="spinner"></span>กำลังคำนวณ...';
+  btn.disabled = true;
+  try {
+    const res  = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({module:mod, inputs:collectInputs(mod)}) });
+    const data = await res.json();
+    if (data.error) showError(data.error);
+    else { _lastModule=mod; _lastData=data; renderResults(mod,data); }
+  } catch(e) {
+    showError('เชื่อมต่อ API ไม่ได้: '+e.message);
+  } finally {
+    btn.innerHTML = 'คำนวณ (Calculate)';
+    btn.disabled = false;
   }
+}
 
-  function populateSelect(id, list) {
-    const el = document.getElementById(id);
-    if (!el || !list.length) return;
-    el.innerHTML = list.map(v => `<option value="${v}">${v}</option>`).join('');
-  }
+/* ─────────────────────────────────────────────────────────────────────────
+   Find optimal section
+───────────────────────────────────────────────────────────────────────── */
+async function findSection(mod) {
+  const btn = document.querySelector('.btn-find');
+  btn.innerHTML = 'กำลังค้นหา...'; btn.disabled = true;
+  try {
+    const sr   = await fetch(API, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({module:'sections',inputs:{}})});
+    const sd   = await sr.json();
+    const secs = sd.purlin_sections || [];
+    const inp  = collectInputs(mod);
 
-  function setDefault(id, val) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const opt = [...el.options].find(o => o.value === val || o.value.startsWith(val.split('x')[0]));
-    if (opt) el.value = opt.value;
-  }
+    showContent('<div class="rcard"><h3>ค้นหาหน้าตัดประหยัดที่สุด</h3><pre id="search-log" style="font-size:.8rem;line-height:1.8;margin:0;background:none;color:#334;padding:0;max-height:none"></pre></div>');
+    const log = document.getElementById('search-log');
+    let found=null, foundData=null;
 
-  loadSections();
-
-  /* ------------------------------------------------------------------ */
-  /* Tab switching                                                        */
-  /* ------------------------------------------------------------------ */
-  function switchTab(name) {
-    document.querySelectorAll('.tab-btn').forEach((b,i) => {
-      const tabs = ['purlin','beam','column','connection','baseplate'];
-      b.classList.toggle('active', tabs[i] === name);
-    });
-    document.querySelectorAll('.sidebar.tab-panel').forEach(p => {
-      p.classList.toggle('active', p.id === 'sidebar-'+name);
-    });
-    showPlaceholder();
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* Calculate                                                            */
-  /* ------------------------------------------------------------------ */
-  async function calculate(mod) {
-    const btn = document.getElementById('btn-'+mod);
-    btn.innerHTML = '<span class="spinner"></span>กำลังคำนวณ...';
-    btn.disabled = true;
-
-    try {
-      const inputs = collectInputs(mod);
-      const res = await fetch(API, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({module: mod, inputs})
-      });
-      const data = await res.json();
-
-      if (data.error) {
-        showError(data.error);
+    for (const sec of secs) {
+      inp.section_name = sec;
+      log.textContent += `ตรวจสอบ ${sec} ... `;
+      const r = await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({module:mod,inputs:inp})});
+      const d = await r.json();
+      if (d.is_ok) {
+        log.textContent += 'ผ่าน ✓\n'; found=sec; foundData=d; break;
       } else {
-        renderResults(mod, data);
+        log.textContent += 'ไม่ผ่าน ✗\n';
       }
-    } catch(e) {
-      showError('เชื่อมต่อ API ไม่ได้: ' + e.message);
-    } finally {
-      btn.innerHTML = 'คำนวณ (Calculate)';
-      btn.disabled = false;
     }
+    if (found) { document.getElementById('p-section').value=found; setTimeout(()=>{ _lastModule=mod;_lastData=foundData; renderResults(mod,foundData); },300); }
+    else { log.textContent += '\nไม่พบหน้าตัดที่เหมาะสมในฐานข้อมูล'; }
+  } catch(e) { showError(e.message); }
+  finally { btn.innerHTML='ค้นหาหน้าตัดประหยัดสุด'; btn.disabled=false; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Collect inputs
+───────────────────────────────────────────────────────────────────────── */
+function collectInputs(mod) {
+  const v = id => document.getElementById(id)?.value ?? '';
+  const n = id => parseFloat(v(id)) || 0;
+  if (mod==='purlin') return { section_name:v('p-section'), purlin_span:n('p-span'), purlin_spacing:n('p-spacing'), roof_slope_degree:n('p-slope'), dead_load_kPa:n('p-dl'), live_load_kPa:n('p-ll'), basic_wind_speed_mps:n('p-wind'), building_height_m:n('p-height'), exposure_category:v('p-exposure'), internal_pressure_coeff_pos:n('p-cpi-pos'), internal_pressure_coeff_neg:n('p-cpi-neg') };
+  if (mod==='beam') return { section_name:v('b-section'), span:n('b-span'), is_cantilever:v('b-cantilever')==='true', lateral_bracing:v('b-bracing'), dead_load:n('b-dl'), live_load:n('b-ll'), wind_load:n('b-wl'), point_load_D:n('b-pdl'), point_load_L:n('b-pll') };
+  if (mod==='column') return { section_name:v('c-section'), height:n('c-height'), Kx:n('c-kx'), Ky:n('c-ky'), is_braced_frame:v('c-braced')==='true', axial_load_D:n('c-adl'), axial_load_L:n('c-all'), axial_load_W:n('c-awl'), moment_x_D:n('c-mxdl'), moment_x_L:n('c-mxll'), moment_y_D:n('c-mydl'), moment_y_L:n('c-myll') };
+  if (mod==='connection') return { connection_type:v('cn-type'), bolt_size:v('cn-bolt'), num_bolts:parseInt(v('cn-nbolt'))||4, plate_thickness:n('cn-plt'), bolt_connection_type:v('cn-btype'), weld_size:v('cn-weld'), weld_length:n('cn-wlen'), weld_throat:n('cn-throat'), shear_load_D:n('cn-sdl'), shear_load_L:n('cn-sll'), axial_load_D:n('cn-adl'), axial_load_L:n('cn-all') };
+  if (mod==='baseplate') return { section_name:v('bp-section'), plate_B:n('bp-b'), plate_N:n('bp-n'), plate_t:n('bp-t'), concrete_Fc:n('bp-fc'), num_anchor_bolts:parseInt(v('bp-nab'))||4, anchor_bolt_diameter:n('bp-abd'), axial_load_D:n('bp-adl'), axial_load_L:n('bp-all'), moment_x_D:n('bp-mxdl'), moment_x_L:n('bp-mxll'), shear_x_D:n('bp-sxdl'), shear_x_L:n('bp-sxll') };
+  return {};
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Render results
+───────────────────────────────────────────────────────────────────────── */
+function renderResults(mod, data) {
+  document.getElementById('placeholder').style.display = 'none';
+  document.getElementById('btn-pdf').style.display = '';
+
+  const tabNames = {purlin:'แป (Purlin)',beam:'คาน (Beam)',column:'เสา (Column)',connection:'รอยต่อ (Connection)',baseplate:'แผ่นฐาน (Base Plate)'};
+  document.getElementById('panel-title').textContent = 'ผลการออกแบบ'+tabNames[mod];
+  const printTitle = {purlin:'รายการคำนวณออกแบบแป',beam:'รายการคำนวณออกแบบคาน',column:'รายการคำนวณออกแบบเสา',connection:'รายการคำนวณออกแบบรอยต่อ',baseplate:'รายการคำนวณออกแบบแผ่นฐาน'};
+  document.getElementById('print-title').textContent = printTitle[mod] || 'รายการคำนวณ';
+  document.getElementById('print-meta').textContent = `วันที่: ${new Date().toLocaleDateString('th-TH')}  |  วสท. 011038-22  |  ASD Method`;
+
+  let html = '';
+  // Summary card
+  const badge = data.is_ok
+    ? '<span class="badge-pass">✓ ผ่าน (ADEQUATE)</span>'
+    : '<span class="badge-fail">✗ ไม่ผ่าน (INADEQUATE)</span>';
+
+  if (mod==='purlin')    html = summaryPurlin(data,badge);
+  else if (mod==='beam') html = summaryBeam(data,badge);
+  else if (mod==='column') html = summaryColumn(data,badge);
+  else html = `<div class="rcard">${badge}${data.status?`<p style="margin-top:8px;font-size:.85rem">${esc(data.status)}</p>`:''}</div>`;
+
+  // Formula steps
+  if (data.calc_steps && data.calc_steps.length) {
+    html += `<div class="rcard"><h3>รายการคำนวณโดยละเอียด (Step-by-Step)</h3></div>`;
+    html += data.calc_steps.map(renderStep).join('');
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Find optimal section (Purlin)                                        */
-  /* ------------------------------------------------------------------ */
-  async function findSection(mod) {
-    const btn = document.querySelector('.btn-find');
-    btn.innerHTML = '<span style="color:var(--blue)">กำลังค้นหา...</span>';
-    btn.disabled = true;
-
-    try {
-      // Load all purlin section names
-      const secRes = await fetch(API, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({module:'sections',inputs:{}})});
-      const secData = await secRes.json();
-      const sections = secData.purlin_sections || [];
-
-      const inputs = collectInputs(mod);
-      let found = null;
-      let foundData = null;
-
-      const content = document.getElementById('results-content');
-      document.getElementById('placeholder').style.display = 'none';
-      content.style.display = 'block';
-      content.innerHTML = '<div class="result-card"><h3>ค้นหาหน้าตัดประหยัดที่สุด...</h3><div id="search-log" style="font-size:.82rem;line-height:1.8;font-family:monospace;"></div></div>';
-
-      const log = document.getElementById('search-log');
-
-      for (const sec of sections) {
-        inputs.section_name = sec;
-        log.innerHTML += `ตรวจสอบ ${sec} ... `;
-        const r = await fetch(API, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({module:mod,inputs})});
-        const d = await r.json();
-        if (d.is_ok) {
-          log.innerHTML += '<span style="color:var(--pass);font-weight:700">ผ่าน ✓</span>\n';
-          found = sec;
-          foundData = d;
-          break;
-        } else {
-          log.innerHTML += '<span style="color:var(--fail)">ไม่ผ่าน ✗</span>\n';
-        }
-      }
-
-      if (found) {
-        document.getElementById('p-section').value = found;
-        setTimeout(() => renderResults(mod, foundData), 200);
-      } else {
-        log.innerHTML += '\n<span style="color:var(--fail);font-weight:700">ไม่พบหน้าตัดที่เหมาะสมในฐานข้อมูล</span>';
-      }
-    } catch(e) {
-      showError('เกิดข้อผิดพลาด: '+e.message);
-    } finally {
-      btn.innerHTML = 'ค้นหาหน้าตัดประหยัดสุด';
-      btn.disabled = false;
-    }
+  // Load case table (beam)
+  if (data.details?.load_cases?.length) {
+    html += renderLCTable(data.details.load_cases, data.details.deflection_checks);
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Collect inputs per module                                            */
-  /* ------------------------------------------------------------------ */
-  function collectInputs(mod) {
-    const v = (id) => document.getElementById(id)?.value;
-    const n = (id) => parseFloat(v(id)) || 0;
-
-    if (mod === 'purlin') return {
-      section_name: v('p-section'),
-      purlin_span: n('p-span'), purlin_spacing: n('p-spacing'),
-      roof_slope_degree: n('p-slope'),
-      dead_load_kPa: n('p-dl'), live_load_kPa: n('p-ll'),
-      basic_wind_speed_mps: n('p-wind'), building_height_m: n('p-height'),
-      exposure_category: v('p-exposure'),
-      internal_pressure_coeff_pos: n('p-cpi-pos'),
-      internal_pressure_coeff_neg: n('p-cpi-neg'),
-    };
-
-    if (mod === 'beam') return {
-      section_name: v('b-section'), span: n('b-span'),
-      is_cantilever: v('b-cantilever') === 'true',
-      lateral_bracing: v('b-bracing'),
-      dead_load: n('b-dl'), live_load: n('b-ll'), wind_load: n('b-wl'),
-      point_load_D: n('b-pdl'), point_load_L: n('b-pll'),
-    };
-
-    if (mod === 'column') return {
-      section_name: v('c-section'), height: n('c-height'),
-      Kx: n('c-kx'), Ky: n('c-ky'),
-      is_braced_frame: v('c-braced') === 'true',
-      axial_load_D: n('c-adl'), axial_load_L: n('c-all'), axial_load_W: n('c-awl'),
-      moment_x_D: n('c-mxdl'), moment_x_L: n('c-mxll'),
-      moment_y_D: n('c-mydl'), moment_y_L: n('c-myll'),
-    };
-
-    if (mod === 'connection') return {
-      connection_type: v('cn-type'),
-      bolt_size: v('cn-bolt'), num_bolts: parseInt(v('cn-nbolt'))||4,
-      plate_thickness: n('cn-plt'), bolt_connection_type: v('cn-btype'),
-      weld_size: v('cn-weld'), weld_length: n('cn-wlen'), weld_throat: n('cn-throat'),
-      shear_load_D: n('cn-sdl'), shear_load_L: n('cn-sll'),
-      axial_load_D: n('cn-adl'), axial_load_L: n('cn-all'),
-    };
-
-    if (mod === 'baseplate') return {
-      section_name: v('bp-section'),
-      plate_B: n('bp-b'), plate_N: n('bp-n'), plate_t: n('bp-t'),
-      concrete_Fc: n('bp-fc'),
-      num_anchor_bolts: parseInt(v('bp-nab'))||4,
-      anchor_bolt_diameter: n('bp-abd'),
-      axial_load_D: n('bp-adl'), axial_load_L: n('bp-all'),
-      moment_x_D: n('bp-mxdl'), moment_x_L: n('bp-mxll'),
-      shear_x_D: n('bp-sxdl'), shear_x_L: n('bp-sxll'),
-    };
-
-    return {};
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* Render results                                                       */
-  /* ------------------------------------------------------------------ */
-  function renderResults(mod, data) {
-    document.getElementById('placeholder').style.display = 'none';
-    const panel = document.getElementById('results-content');
-    panel.style.display = 'block';
-
-    const isOk = data.is_ok;
-    const badge = isOk
-      ? '<span class="status-badge status-pass">ผ่าน ✓ ADEQUATE</span>'
-      : '<span class="status-badge status-fail">ไม่ผ่าน ✗ INADEQUATE</span>';
-
-    let html = '';
-
-    if (mod === 'purlin') html = renderPurlin(data, badge);
-    else if (mod === 'beam') html = renderBeam(data, badge);
-    else if (mod === 'column') html = renderColumn(data, badge);
-    else if (mod === 'connection') html = renderConnection(data, badge);
-    else if (mod === 'baseplate') html = renderBasePlate(data, badge);
-    else html = `<div class="result-card"><pre class="report-text">${JSON.stringify(data, null, 2)}</pre></div>`;
-
-    panel.innerHTML = html;
-  }
-
-  /* ---- Purlin ---- */
-  function renderPurlin(d, badge) {
-    const sc = d['Stress Check'] || {};
-    const sh = d['Shear Check'] || {};
-    const dc = d['Deflection Check'] || {};
-    const inp = d['Inputs'] || {};
-
-    return `
-      <div class="result-card">
-        <h3>ผลการออกแบบแป · Purlin Design Result</h3>
-        ${badge}
-        <div style="margin-top:12px">
-          <div style="font-size:.82rem;color:#555;margin-bottom:8px">
-            หน้าตัด: <strong>${inp['Section']||''}</strong> &nbsp;|&nbsp;
-            ช่วง: ${inp['Span (m)']} m &nbsp;|&nbsp; ระยะ: ${inp['Spacing (m)']} m
-          </div>
-          ${checkRow('Bending (Stress)', sc['Interaction Ratio'], sc['Status'])}
-          ${checkRow('Shear', sh['ratio'], sh['status'])}
-          ${checkRow('Deflection LL', dc['Live Load Ratio'] || '—', dc['Live Load'])}
-          ${checkRow('Deflection Total', dc['Total Load Ratio'] || '—', dc['Total Load'])}
-        </div>
-      </div>
-      ${d.report ? `<div class="result-card"><h3>รายงานโดยละเอียด · Detailed Report</h3><pre class="report-text">${escHtml(d.report)}</pre></div>` : ''}
-    `;
-  }
-
-  /* ---- Beam ---- */
-  function renderBeam(d, badge) {
-    return `
-      <div class="result-card">
-        <h3>ผลการออกแบบคาน · Beam Design Result</h3>
-        ${badge}
-        <div style="margin-top:12px">
-          ${checkRow('Bending Stress (fb/Fb)', d.stress_ratio, d.stress_ratio <= 1 ? 'ผ่าน (OK)' : 'ไม่ผ่าน (NG)')}
-          ${checkRow('Shear Stress (fv/Fv)', d.shear_ratio, d.shear_ratio <= 1 ? 'ผ่าน (OK)' : 'ไม่ผ่าน (NG)')}
-          ${checkRow('Deflection (δ/δallow)', d.deflection_ratio, d.deflection_ratio <= 1 ? 'ผ่าน (OK)' : 'ไม่ผ่าน (NG)')}
-        </div>
-        <div style="margin-top:14px;font-size:.83rem;color:#334;line-height:2">
-          <strong>Mmax</strong> = ${(d.max_moment||0).toFixed(2)} kN·m &emsp;
-          <strong>Vmax</strong> = ${(d.max_shear||0).toFixed(2)} kN &emsp;
-          <strong>fb</strong> = ${(d.fb||0).toFixed(1)} MPa &emsp;
-          <strong>Fb</strong> = ${(d.Fb||0).toFixed(1)} MPa &emsp;
-          <strong>δmax</strong> = ${(d.delta_max||0).toFixed(2)} mm
-        </div>
-        ${d.critical_load_case ? `<div style="font-size:.8rem;color:#888;margin-top:6px">Critical Case: ${d.critical_load_case}</div>` : ''}
-      </div>
-      ${renderLoadCaseTable(d.details?.load_cases)}
-    `;
-  }
-
-  /* ---- Column ---- */
-  function renderColumn(d, badge) {
-    return `
-      <div class="result-card">
-        <h3>ผลการออกแบบเสา · Column Design Result</h3>
-        ${badge}
-        ${d.status ? `<div style="margin-top:8px;font-size:.85rem;color:#334">${d.status}</div>` : ''}
-        <div style="margin-top:12px">
-          ${checkRow('Axial (fa/Fa)', d.axial_ratio, d.axial_ratio <= 1 ? 'ผ่าน (OK)' : 'ไม่ผ่าน (NG)')}
-          ${checkRow('Combined Interaction', d.interaction_ratio, d.interaction_ratio <= 1 ? 'ผ่าน (OK)' : 'ไม่ผ่าน (NG)')}
-        </div>
-        <div style="margin-top:14px;font-size:.83rem;color:#334;line-height:2">
-          <strong>KL/rx</strong> = ${(d.slenderness_x||0).toFixed(1)} &emsp;
-          <strong>KL/ry</strong> = ${(d.slenderness_y||0).toFixed(1)} &emsp;
-          <strong>Fa</strong> = ${(d.Fa||0).toFixed(1)} MPa &emsp;
-          <strong>fa</strong> = ${(d.fa||0).toFixed(1)} MPa &emsp;
-          <strong>P_allow</strong> = ${(d.allowable_axial_load||0).toFixed(1)} kN
-        </div>
-      </div>
-    `;
-  }
-
-  /* ---- Connection ---- */
-  function renderConnection(d, badge) {
-    return `
-      <div class="result-card">
-        <h3>ผลการออกแบบรอยต่อ · Connection Result</h3>
-        ${badge}
-        ${d.status ? `<div style="margin-top:8px;font-size:.85rem;color:#334">${d.status}</div>` : ''}
-        <div style="margin-top:12px;font-size:.83rem;color:#334;line-height:2">
-          ${d.num_bolts ? `<strong>Bolts</strong>: ${d.num_bolts} × M${d.bolt_diameter} &emsp;` : ''}
-          ${d.shear_ratio != null ? `<strong>Shear ratio</strong>: ${d.shear_ratio?.toFixed(3)}` : ''}
-        </div>
-      </div>
-      <div class="result-card"><pre class="report-text">${JSON.stringify(d, null, 2)}</pre></div>
-    `;
-  }
-
-  /* ---- Base Plate ---- */
-  function renderBasePlate(d, badge) {
-    return `
-      <div class="result-card">
-        <h3>ผลการออกแบบแผ่นฐาน · Base Plate Result</h3>
-        ${badge}
-        ${d.status ? `<div style="margin-top:8px;font-size:.85rem;color:#334">${d.status}</div>` : ''}
-        <div style="margin-top:12px">
-          ${checkRow('Bearing (fp/Fp)', d.bearing_ratio, d.bearing_ratio <= 1 ? 'ผ่าน (OK)' : 'ไม่ผ่าน (NG)')}
-          ${checkRow('Plate Thickness', `${(d.required_thickness||0).toFixed(1)} / ${(d.actual_thickness||0).toFixed(1)} mm`, d.actual_thickness >= d.required_thickness ? 'ผ่าน (OK)' : 'ไม่ผ่าน (NG)')}
-        </div>
-        <div style="margin-top:14px;font-size:.83rem;color:#334;line-height:2">
-          <strong>Plate</strong>: ${(d.plate_width_B||0).toFixed(0)} × ${(d.plate_length_N||0).toFixed(0)} mm &emsp;
-          <strong>fp_max</strong> = ${(d.max_bearing_pressure||0).toFixed(2)} MPa &emsp;
-          <strong>Fp_allow</strong> = ${(d.allowable_bearing_pressure||0).toFixed(2)} MPa
-        </div>
-      </div>
-    `;
-  }
-
-  /* ------------------------------------------------------------------ */
-  /* Helpers                                                              */
-  /* ------------------------------------------------------------------ */
-  function checkRow(label, ratio, status) {
-    const r = parseFloat(ratio);
-    const isOk = (typeof status === 'string') ? status.includes('ผ่าน') && !status.includes('ไม่') : r <= 1.0;
-    const pct = isNaN(r) ? 0 : Math.min(r * 100, 100);
-    const fillClass = r <= 0.75 ? 'fill-pass' : r <= 1.0 ? 'fill-warn' : 'fill-fail';
-    const ratioDisplay = isNaN(r) ? String(ratio||'—') : r.toFixed(3);
-    return `
-      <div class="check-row">
-        <span>${label}</span>
-        <span>
-          <span style="font-size:.8rem;margin-right:8px">${ratioDisplay}</span>
-          <span style="font-size:.78rem;font-weight:700;color:${isOk?'var(--pass)':'var(--fail)'}">${isOk?'✓':'✗'}</span>
-        </span>
-      </div>
-      <div class="ratio-bar"><div class="ratio-fill ${fillClass}" style="width:${pct}%"></div></div>
-    `;
-  }
-
-  function renderLoadCaseTable(cases) {
-    if (!cases || !cases.length) return '';
-    const rows = cases.map(c => `
-      <tr style="background:${c.stress_ratio > 1 ? '#fde8e8' : c.stress_ratio > 0.75 ? '#fef9ec' : 'transparent'}">
-        <td>${c.name_th || c.name}</td>
-        <td>${(c.M_kNm||0).toFixed(2)}</td>
-        <td>${(c.V_kN||0).toFixed(2)}</td>
-        <td>${(c.fb_MPa||0).toFixed(1)}</td>
-        <td><strong>${(c.stress_ratio||0).toFixed(3)}</strong></td>
-      </tr>`).join('');
-    return `
-      <div class="result-card">
-        <h3>Load Combinations</h3>
-        <table style="width:100%;border-collapse:collapse;font-size:.8rem">
-          <thead><tr style="background:#f0f4f8;font-weight:700">
-            <th style="padding:5px 8px;text-align:left">กรณี</th>
-            <th>M (kN·m)</th><th>V (kN)</th><th>fb (MPa)</th><th>fb/Fb</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>`;
-  }
-
-  function showError(msg) {
-    document.getElementById('placeholder').style.display = 'none';
-    const panel = document.getElementById('results-content');
-    panel.style.display = 'block';
-    panel.innerHTML = `<div class="result-card" style="border-left:4px solid var(--fail)">
-      <h3 style="color:var(--fail)">เกิดข้อผิดพลาด · Error</h3>
-      <p style="font-family:monospace;font-size:.85rem">${escHtml(msg)}</p>
+  // Full text report (purlin)
+  if (data.report) {
+    html += `<div class="rcard">
+      <h3 class="collapsible" onclick="toggleReport(this)">รายงานฉบับเต็ม (Full Report)</h3>
+      <div id="rpt-body" style="display:none"><pre class="rpt">${esc(data.report)}</pre></div>
     </div>`;
   }
 
-  function showPlaceholder() {
-    document.getElementById('placeholder').style.display = '';
-    document.getElementById('results-content').style.display = 'none';
-    document.getElementById('results-content').innerHTML = '';
+  showContent(html);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Summary cards
+───────────────────────────────────────────────────────────────────────── */
+function summaryPurlin(d,badge) {
+  const sc=d['Stress Check']||{}, sh=d['Shear Check']||{}, dc=d['Deflection Check']||{}, inp=d['Inputs']||{};
+  return `<div class="rcard">
+    <h3>สรุปผลการออกแบบแป (Purlin Summary)</h3>
+    ${badge}
+    <div style="margin-top:10px;font-size:.82rem;color:#555">
+      หน้าตัด: <strong>${inp['Section']||''}</strong> &nbsp;|&nbsp; ช่วง L = ${inp['Span (m)']} m &nbsp;|&nbsp; ระยะ s = ${inp['Spacing (m)']} m
+    </div>
+    <div style="margin-top:10px">
+      ${chkRow('แรงดัด (Bending U.C.)', sc['Interaction Ratio'], sc['Status'])}
+      ${chkRow('แรงเฉือน (Shear)', sh['ratio'], sh['status'])}
+      ${chkRow('การโก่งตัว LL (Deflection)', dc['Live Load Ratio']||0, dc['Live Load'])}
+      ${chkRow('การโก่งตัว Total', dc['Total Load Ratio']||0, dc['Total Load'])}
+    </div>
+  </div>`;
+}
+
+function summaryBeam(d,badge) {
+  return `<div class="rcard">
+    <h3>สรุปผลการออกแบบคาน (Beam Summary)</h3>
+    ${badge}
+    ${d.status?`<div style="margin-top:6px;font-size:.83rem;color:#334">${esc(d.status)}</div>`:''}
+    <div style="margin-top:10px">
+      ${chkRow('แรงดัด fb/Fb', d.stress_ratio, d.stress_ratio<=1?'ผ่าน (OK)':'ไม่ผ่าน (NG)')}
+      ${chkRow('แรงเฉือน fv/Fv', d.shear_ratio, d.shear_ratio<=1?'ผ่าน (OK)':'ไม่ผ่าน (NG)')}
+      ${chkRow('การแอ่นตัว δ/δ_allow', d.deflection_ratio, d.deflection_ratio<=1?'ผ่าน (OK)':'ไม่ผ่าน (NG)')}
+    </div>
+    <div style="margin-top:10px;font-size:.81rem;line-height:2;color:#334">
+      <strong>M_max</strong> = ${fmt(d.max_moment)} kN·m &emsp;
+      <strong>V_max</strong> = ${fmt(d.max_shear)} kN &emsp;
+      <strong>fb</strong> = ${fmt(d.fb)} MPa &emsp;
+      <strong>Fb</strong> = ${fmt(d.Fb)} MPa &emsp;
+      <strong>δ_max</strong> = ${fmt(d.delta_max,2)} mm
+    </div>
+  </div>`;
+}
+
+function summaryColumn(d,badge) {
+  return `<div class="rcard">
+    <h3>สรุปผลการออกแบบเสา (Column Summary)</h3>
+    ${badge}
+    ${d.status?`<div style="margin-top:6px;font-size:.83rem;color:#334">${esc(d.status)}</div>`:''}
+    <div style="margin-top:10px">
+      ${chkRow('แรงอัด fa/Fa', d.axial_ratio, d.axial_ratio<=1?'ผ่าน (OK)':'ไม่ผ่าน (NG)')}
+      ${chkRow('Combined Interaction', d.interaction_ratio, d.interaction_ratio<=1?'ผ่าน (OK)':'ไม่ผ่าน (NG)')}
+    </div>
+    <div style="margin-top:10px;font-size:.81rem;line-height:2;color:#334">
+      <strong>KL/r</strong> = ${fmt(d.critical_slenderness,1)} &emsp;
+      <strong>Fa</strong> = ${fmt(d.Fa||0,1)} MPa &emsp;
+      <strong>fa</strong> = ${fmt(d.fa||0,1)} MPa &emsp;
+      <strong>P_allow</strong> = ${fmt(d.allowable_axial_load||0,1)} kN
+    </div>
+  </div>`;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Render a formula step card
+───────────────────────────────────────────────────────────────────────── */
+function renderStep(step) {
+  const rows = step.rows.map(r => {
+    const isCheck = r.is_check;
+    const isOk    = r.is_ok;
+    const rowCls  = isCheck ? (isOk ? 'check-pass' : 'check-fail') : '';
+    const valCls  = isCheck ? (isOk ? 'val-pass' : 'val-fail') : '';
+    const icon    = isCheck ? (isOk ? '✓' : '✗') : '';
+    const ratio   = isCheck ? parseFloat(r.ratio||0) : 0;
+    const barPct  = isCheck ? Math.min(ratio*100,100).toFixed(1) : 0;
+    const barCls  = ratio<=0.75?'fill-pass':ratio<=1.0?'fill-warn':'fill-fail';
+    return `
+      <tr class="${rowCls}">
+        <td class="sym">${esc(r.symbol)}</td>
+        <td style="color:#555;font-size:.78rem">${esc(r.desc)}</td>
+        <td class="formula-txt">${esc(r.formula)}</td>
+        <td class="sub-txt">${esc(r.substitution||'')}</td>
+        <td class="val-txt ${valCls}">${esc(r.value)} ${icon?`<span class="check-icon">${icon}</span>`:''}</td>
+        <td class="unit-txt">${esc(r.unit||'')}</td>
+      </tr>
+      ${isCheck ? `<tr class="${rowCls}"><td colspan="6" style="padding:2px 10px 6px"><div class="ratio-bar"><div class="ratio-fill ${barCls}" style="width:${barPct}%"></div></div></td></tr>` : ''}
+    `;
+  }).join('');
+
+  return `
+    <div class="step-card">
+      <div class="step-title">${esc(step.title)}</div>
+      ${step.subtitle ? `<div class="step-subtitle">${esc(step.subtitle)}</div>` : ''}
+      <div class="step-body">
+        <table class="ftable">
+          <thead><tr>
+            <th style="width:90px">สัญลักษณ์</th>
+            <th>คำอธิบาย</th>
+            <th>สูตร</th>
+            <th>การแทนค่า</th>
+            <th style="text-align:right">ผลลัพธ์</th>
+            <th>หน่วย</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Load case table (beam)
+───────────────────────────────────────────────────────────────────────── */
+function renderLCTable(cases, deflCases) {
+  const rows = cases.map(c => {
+    const crit = c.stress_ratio === Math.max(...cases.map(x=>x.stress_ratio||0));
+    const fail = c.stress_ratio > 1;
+    return `<tr class="${crit?'crit':''} ${fail?'fail':''}">
+      <td>${esc(c.name_th||c.name)}</td>
+      <td style="text-align:right">${fmt(c.w_kN_m,2)}</td>
+      <td style="text-align:right">${fmt(c.M_kNm,2)}</td>
+      <td style="text-align:right">${fmt(c.V_kN,2)}</td>
+      <td style="text-align:right">${fmt(c.fb_MPa,1)}</td>
+      <td style="text-align:right;font-weight:700">${fmt(c.stress_ratio,3)}</td>
+      <td style="text-align:center">${c.stress_ratio<=1?'<span style="color:var(--pass)">✓</span>':'<span style="color:var(--fail)">✗</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  let deflRows = '';
+  if (deflCases?.length) {
+    deflRows = `<h3 style="font-size:.88rem;color:var(--blue);margin:12px 0 8px">ตารางการแอ่นตัว (Deflection)</h3>
+    <table class="lc-table">
+      <thead><tr><th>กรณี</th><th>δ (mm)</th><th>δ_allow (mm)</th><th>δ/δ_allow</th><th></th></tr></thead>
+      <tbody>${deflCases.map(c=>`<tr>
+        <td>${esc(c.name_th||c.name)}</td>
+        <td style="text-align:right">${fmt(c.delta_mm,2)}</td>
+        <td style="text-align:right">${fmt(c.delta_allowable_mm,2)}</td>
+        <td style="text-align:right;font-weight:700">${fmt(c.ratio,3)}</td>
+        <td style="text-align:center">${c.ratio<=1?'<span style="color:var(--pass)">✓</span>':'<span style="color:var(--fail)">✗</span>'}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
   }
 
-  function toggleConnectionType() {
-    const t = document.getElementById('cn-type').value;
-    document.getElementById('bolted-fields').style.display = t === 'bolted' ? '' : 'none';
-    document.getElementById('welded-fields').style.display = t === 'welded' ? '' : 'none';
-  }
+  return `<div class="rcard">
+    <h3>ตารางชุดน้ำหนัก (Load Combinations)</h3>
+    <table class="lc-table">
+      <thead><tr><th>กรณี</th><th>w (kN/m)</th><th>M (kN·m)</th><th>V (kN)</th><th>fb (MPa)</th><th>fb/Fb</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${deflRows}
+  </div>`;
+}
 
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
+/* ─────────────────────────────────────────────────────────────────────────
+   Check row helper
+───────────────────────────────────────────────────────────────────────── */
+function chkRow(label, ratio, status) {
+  const r   = parseFloat(ratio) || 0;
+  const ok  = typeof status === 'string' ? (status.includes('ผ่าน') && !status.includes('ไม่')) : r<=1.0;
+  const pct = Math.min(r*100,100).toFixed(1);
+  const fc  = r<=0.75?'fill-pass':r<=1.0?'fill-warn':'fill-fail';
+  return `
+    <div class="chk-row">
+      <span>${label}</span>
+      <span>
+        <span style="font-size:.78rem;margin-right:6px">${isNaN(r)?'—':r.toFixed(3)}</span>
+        <span style="font-weight:700;color:${ok?'var(--pass)':'var(--fail)'}">${ok?'✓ ผ่าน':'✗ ไม่ผ่าน'}</span>
+      </span>
+    </div>
+    <div class="ratio-bar"><div class="ratio-fill ${fc}" style="width:${pct}%"></div></div>`;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Export PDF
+───────────────────────────────────────────────────────────────────────── */
+function exportPDF() {
+  // Expand all collapsed sections before printing
+  document.querySelectorAll('#rpt-body').forEach(el=>el.style.display='');
+  document.querySelectorAll('.collapsible').forEach(el=>el.classList.add('open'));
+  window.print();
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Misc helpers
+───────────────────────────────────────────────────────────────────────── */
+function showContent(html) {
+  document.getElementById('placeholder').style.display = 'none';
+  const el = document.getElementById('results-content');
+  el.style.display = 'block';
+  el.innerHTML = html;
+}
+function showPlaceholder() {
+  document.getElementById('placeholder').style.display = '';
+  const el = document.getElementById('results-content');
+  el.style.display = 'none'; el.innerHTML = '';
+  document.getElementById('btn-pdf').style.display = 'none';
+}
+function showError(msg) {
+  showContent(`<div class="rcard" style="border-left:4px solid var(--fail)">
+    <h3 style="color:var(--fail)">เกิดข้อผิดพลาด</h3>
+    <pre style="font-size:.82rem;margin:0;font-family:'Fira Mono',monospace;white-space:pre-wrap">${esc(msg)}</pre>
+  </div>`);
+}
+function toggleReport(el) {
+  const body = document.getElementById('rpt-body');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  el.classList.toggle('open', !open);
+}
+function toggleConn() {
+  const t = document.getElementById('cn-type').value;
+  document.getElementById('bolted-fields').style.display = t==='bolted'?'':'none';
+  document.getElementById('welded-fields').style.display = t==='welded'?'':'none';
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function fmt(v, d=2) {
+  const n = parseFloat(v);
+  return isNaN(n) ? '—' : n.toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d});
+}
 </script>
-
 </body>
 </html>

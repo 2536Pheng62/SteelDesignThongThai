@@ -226,7 +226,14 @@ class BeamDesign:
             Design result
         """
         result = BeamDesignResult()
-        result.details = {"load_cases": [], "deflection_checks": []}
+        result.details = {
+            "load_cases": [], 
+            "deflection_checks": [],
+            "properties": {
+                "Fy": self.Fy,
+                "Sx": self.Sx
+            }
+        }
         
         # Calculate allowable stresses
         self.Fb = self.calculate_allowable_bending_stress()
@@ -364,6 +371,10 @@ def format_beam_report(result: BeamDesignResult, section_name: str, span: float)
     def f(n, d=2):
         return f"{n:,.{d}f}"
     
+    props = result.details.get("properties", {}) if result.details else {}
+    Fy = props.get("Fy", 0)
+    Sx = props.get("Sx", 0)
+    
     report = []
     report.append("=" * 70)
     report.append(f"รายการคำนวณออกแบบคานเหล็ก: {section_name}")
@@ -371,8 +382,8 @@ def format_beam_report(result: BeamDesignResult, section_name: str, span: float)
     report.append("=" * 70)
     
     report.append("\n1. คุณสมบัติหน้าตัด")
-    report.append(f"  - Fy = {f(result.Fb / 0.66 if result.Fb > 0 else 0, 0)} MPa")
-    report.append(f"  - Sx = {f(result.Fb * 1e6 / 0.66 if result.Fb > 0 else 0, 0)} mm³")
+    report.append(f"  - กำลังคราก Fy = {f(Fy, 0)} MPa")
+    report.append(f"  - โมดูลัสหน้าตัด Sx = {f(Sx, 0)} mm³")
     
     report.append("\n2. การตรวจสอบหน่วยแรงดัด (Bending Stress Check)")
     report.append(f"  - กรณีวิกฤต: {result.critical_load_case}")

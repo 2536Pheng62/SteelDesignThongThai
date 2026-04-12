@@ -168,7 +168,14 @@ class ColumnDesign:
             Design result
         """
         result = ColumnDesignResult()
-        result.details = {"load_cases": []}
+        result.details = {
+            "load_cases": [],
+            "properties": {
+                "A": self.A,
+                "rx": self.rx,
+                "ry": self.ry
+            }
+        }
         
         # Calculate slenderness
         KLx_rx, KLy_ry, KLx_m, KLy_m = self.calculate_slenderness()
@@ -288,6 +295,11 @@ def format_column_report(result: ColumnDesignResult, section_name: str, height: 
     def f(n, d=2):
         return f"{n:,.{d}f}"
     
+    props = result.details.get("properties", {}) if result.details else {}
+    A = props.get("A", 0)
+    rx = props.get("rx", 0)
+    ry = props.get("ry", 0)
+    
     report = []
     report.append("=" * 70)
     report.append(f"รายการคำนวณออกแบบเสาเหล็ก: {section_name}")
@@ -295,9 +307,9 @@ def format_column_report(result: ColumnDesignResult, section_name: str, height: 
     report.append("=" * 70)
     
     report.append("\n1. คุณสมบัติหน้าตัด")
-    report.append(f"  - A = {f(result.Fa * 1e6 / 0.66 if result.Fa > 0 else 0, 0)} mm²")
-    report.append(f"  - rx = {f(result.Fa * 1e6 / 0.66 if result.Fa > 0 else 0, 1)} mm")
-    report.append(f"  - ry = {f(result.Fa * 1e6 / 0.66 if result.Fa > 0 else 0, 1)} mm")
+    report.append(f"  - พื้นที่หน้าตัด A = {f(A, 0)} mm²")
+    report.append(f"  - รัศมีไจเรชั่น rx = {f(rx, 1)} mm")
+    report.append(f"  - รัศมีไจเรชั่น ry = {f(ry, 1)} mm")
     
     report.append("\n2. การตรวจสอบความชะลูด (Slenderness Check)")
     report.append(f"  - KLx = {f(result.KLx)} m, KLy = {f(result.KLy)} m")
@@ -321,3 +333,4 @@ def format_column_report(result: ColumnDesignResult, section_name: str, height: 
     report.append("=" * 70)
     
     return "\n".join(report)
+

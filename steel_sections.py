@@ -353,6 +353,145 @@ STEEL_PIPES = {
 }
 
 # ============================================================================
+# RHS / SHS (เหล็กกล่องสี่เหลี่ยมผืนผ้า/จตุรัส) - TIS 1228 / TIS 107-2
+# Rectangular Hollow Section / Square Hollow Section
+# ============================================================================
+RHS_SECTIONS = {
+    # SHS - Square Hollow Sections
+    "SHS40x40x2.3": SteelSection(
+        name="SHS40x40x2.3", weight=2.71, Fy=245, Fu=290, A=345, d=40, tw=2.3, bf=40, tf=2.3,
+        Ix=9.68e4, Sx=4.84e3, rx=16.8, Iy=9.68e4, Sy=4.84e3, ry=16.8,
+        Zx=5.72e3, Zy=5.72e3, J=1.58e5, Cw=0
+    ),
+    "SHS50x50x2.3": SteelSection(
+        name="SHS50x50x2.3", weight=3.42, Fy=245, Fu=290, A=436, d=50, tw=2.3, bf=50, tf=2.3,
+        Ix=1.96e5, Sx=7.84e3, rx=21.2, Iy=1.96e5, Sy=7.84e3, ry=21.2,
+        Zx=9.20e3, Zy=9.20e3, J=3.18e5, Cw=0
+    ),
+    "SHS50x50x3.2": SteelSection(
+        name="SHS50x50x3.2", weight=4.65, Fy=245, Fu=290, A=592, d=50, tw=3.2, bf=50, tf=3.2,
+        Ix=2.58e5, Sx=1.03e4, rx=20.9, Iy=2.58e5, Sy=1.03e4, ry=20.9,
+        Zx=1.22e4, Zy=1.22e4, J=4.18e5, Cw=0
+    ),
+    "SHS60x60x3.2": SteelSection(
+        name="SHS60x60x3.2", weight=5.65, Fy=245, Fu=290, A=719, d=60, tw=3.2, bf=60, tf=3.2,
+        Ix=4.60e5, Sx=1.53e4, rx=25.3, Iy=4.60e5, Sy=1.53e4, ry=25.3,
+        Zx=1.81e4, Zy=1.81e4, J=7.44e5, Cw=0
+    ),
+    "SHS75x75x3.2": SteelSection(
+        name="SHS75x75x3.2", weight=7.15, Fy=245, Fu=290, A=910, d=75, tw=3.2, bf=75, tf=3.2,
+        Ix=9.28e5, Sx=2.47e4, rx=31.9, Iy=9.28e5, Sy=2.47e4, ry=31.9,
+        Zx=2.90e4, Zy=2.90e4, J=1.50e6, Cw=0
+    ),
+    "SHS75x75x4.5": SteelSection(
+        name="SHS75x75x4.5", weight=9.82, Fy=245, Fu=290, A=1250, d=75, tw=4.5, bf=75, tf=4.5,
+        Ix=1.24e6, Sx=3.30e4, rx=31.5, Iy=1.24e6, Sy=3.30e4, ry=31.5,
+        Zx=3.90e4, Zy=3.90e4, J=2.00e6, Cw=0
+    ),
+    "SHS100x100x3.2": SteelSection(
+        name="SHS100x100x3.2", weight=9.68, Fy=245, Fu=290, A=1232, d=100, tw=3.2, bf=100, tf=3.2,
+        Ix=2.28e6, Sx=4.56e4, rx=43.0, Iy=2.28e6, Sy=4.56e4, ry=43.0,
+        Zx=5.28e4, Zy=5.28e4, J=3.68e6, Cw=0
+    ),
+    "SHS100x100x4.5": SteelSection(
+        name="SHS100x100x4.5", weight=13.4, Fy=245, Fu=290, A=1706, d=100, tw=4.5, bf=100, tf=4.5,
+        Ix=3.08e6, Sx=6.16e4, rx=42.5, Iy=3.08e6, Sy=6.16e4, ry=42.5,
+        Zx=7.18e4, Zy=7.18e4, J=4.98e6, Cw=0
+    ),
+    "SHS100x100x6.0": SteelSection(
+        name="SHS100x100x6.0", weight=17.5, Fy=245, Fu=290, A=2228, d=100, tw=6.0, bf=100, tf=6.0,
+        Ix=3.92e6, Sx=7.84e4, rx=41.9, Iy=3.92e6, Sy=7.84e4, ry=41.9,
+        Zx=9.24e4, Zy=9.24e4, J=6.32e6, Cw=0
+    ),
+    "SHS125x125x4.5": SteelSection(
+        name="SHS125x125x4.5", weight=16.9, Fy=245, Fu=290, A=2152, d=125, tw=4.5, bf=125, tf=4.5,
+        Ix=6.18e6, Sx=9.88e4, rx=53.6, Iy=6.18e6, Sy=9.88e4, ry=53.6,
+        Zx=1.14e5, Zy=1.14e5, J=9.98e6, Cw=0
+    ),
+    "SHS125x125x6.0": SteelSection(
+        name="SHS125x125x6.0", weight=22.2, Fy=245, Fu=290, A=2828, d=125, tw=6.0, bf=125, tf=6.0,
+        Ix=7.98e6, Sx=1.28e5, rx=53.1, Iy=7.98e6, Sy=1.28e5, ry=53.1,
+        Zx=1.48e5, Zy=1.48e5, J=1.29e7, Cw=0
+    ),
+    "SHS150x150x4.5": SteelSection(
+        name="SHS150x150x4.5", weight=20.5, Fy=245, Fu=290, A=2610, d=150, tw=4.5, bf=150, tf=4.5,
+        Ix=1.09e7, Sx=1.45e5, rx=64.6, Iy=1.09e7, Sy=1.45e5, ry=64.6,
+        Zx=1.66e5, Zy=1.66e5, J=1.75e7, Cw=0
+    ),
+    "SHS150x150x6.0": SteelSection(
+        name="SHS150x150x6.0", weight=27.0, Fy=245, Fu=290, A=3440, d=150, tw=6.0, bf=150, tf=6.0,
+        Ix=1.41e7, Sx=1.88e5, rx=64.0, Iy=1.41e7, Sy=1.88e5, ry=64.0,
+        Zx=2.16e5, Zy=2.16e5, J=2.27e7, Cw=0
+    ),
+    "SHS150x150x9.0": SteelSection(
+        name="SHS150x150x9.0", weight=39.6, Fy=245, Fu=290, A=5040, d=150, tw=9.0, bf=150, tf=9.0,
+        Ix=1.98e7, Sx=2.64e5, rx=62.7, Iy=1.98e7, Sy=2.64e5, ry=62.7,
+        Zx=3.06e5, Zy=3.06e5, J=3.18e7, Cw=0
+    ),
+    "SHS200x200x6.0": SteelSection(
+        name="SHS200x200x6.0", weight=36.3, Fy=245, Fu=290, A=4624, d=200, tw=6.0, bf=200, tf=6.0,
+        Ix=3.38e7, Sx=3.38e5, rx=85.5, Iy=3.38e7, Sy=3.38e5, ry=85.5,
+        Zx=3.84e5, Zy=3.84e5, J=5.42e7, Cw=0
+    ),
+    "SHS200x200x9.0": SteelSection(
+        name="SHS200x200x9.0", weight=53.5, Fy=245, Fu=290, A=6810, d=200, tw=9.0, bf=200, tf=9.0,
+        Ix=4.82e7, Sx=4.82e5, rx=84.1, Iy=4.82e7, Sy=4.82e5, ry=84.1,
+        Zx=5.52e5, Zy=5.52e5, J=7.76e7, Cw=0
+    ),
+    # RHS - Rectangular Hollow Sections
+    "RHS60x40x2.3": SteelSection(
+        name="RHS60x40x2.3", weight=2.28, Fy=245, Fu=290, A=290, d=60, tw=2.3, bf=40, tf=2.3,
+        Ix=1.62e5, Sx=5.40e3, rx=23.6, Iy=7.56e4, Sy=3.78e3, ry=16.1,
+        Zx=6.52e3, Zy=4.46e3, J=1.90e5, Cw=0
+    ),
+    "RHS80x40x2.3": SteelSection(
+        name="RHS80x40x2.3", weight=2.86, Fy=245, Fu=290, A=364, d=80, tw=2.3, bf=40, tf=2.3,
+        Ix=3.68e5, Sx=9.20e3, rx=31.8, Iy=9.24e4, Sy=4.62e3, ry=15.9,
+        Zx=1.10e4, Zy=5.44e3, J=2.80e5, Cw=0
+    ),
+    "RHS100x50x3.2": SteelSection(
+        name="RHS100x50x3.2", weight=5.42, Fy=245, Fu=290, A=690, d=100, tw=3.2, bf=50, tf=3.2,
+        Ix=9.52e5, Sx=1.90e4, rx=37.1, Iy=2.68e5, Sy=1.07e4, ry=19.7,
+        Zx=2.26e4, Zy=1.26e4, J=7.68e5, Cw=0
+    ),
+    "RHS120x60x3.2": SteelSection(
+        name="RHS120x60x3.2", weight=6.56, Fy=245, Fu=290, A=835, d=120, tw=3.2, bf=60, tf=3.2,
+        Ix=1.72e6, Sx=2.87e4, rx=45.4, Iy=4.92e5, Sy=1.64e4, ry=24.3,
+        Zx=3.40e4, Zy=1.92e4, J=1.38e6, Cw=0
+    ),
+    "RHS150x75x4.5": SteelSection(
+        name="RHS150x75x4.5", weight=11.5, Fy=245, Fu=290, A=1464, d=150, tw=4.5, bf=75, tf=4.5,
+        Ix=5.68e6, Sx=7.58e4, rx=62.3, Iy=1.68e6, Sy=4.48e4, ry=33.9,
+        Zx=8.88e4, Zy=5.22e4, J=4.56e6, Cw=0
+    ),
+    "RHS200x100x4.5": SteelSection(
+        name="RHS200x100x4.5", weight=16.0, Fy=245, Fu=290, A=2038, d=200, tw=4.5, bf=100, tf=4.5,
+        Ix=1.48e7, Sx=1.48e5, rx=85.2, Iy=4.38e6, Sy=8.76e4, ry=46.4,
+        Zx=1.72e5, Zy=1.02e5, J=1.18e7, Cw=0
+    ),
+    "RHS200x100x6.0": SteelSection(
+        name="RHS200x100x6.0", weight=21.0, Fy=245, Fu=290, A=2673, d=200, tw=6.0, bf=100, tf=6.0,
+        Ix=1.89e7, Sx=1.89e5, rx=84.1, Iy=5.56e6, Sy=1.11e5, ry=45.6,
+        Zx=2.20e5, Zy=1.30e5, J=1.50e7, Cw=0
+    ),
+    "RHS250x150x6.0": SteelSection(
+        name="RHS250x150x6.0", weight=31.6, Fy=245, Fu=290, A=4023, d=250, tw=6.0, bf=150, tf=6.0,
+        Ix=4.82e7, Sx=3.86e5, rx=109.5, Iy=1.82e7, Sy=2.43e5, ry=67.3,
+        Zx=4.48e5, Zy=2.82e5, J=4.72e7, Cw=0
+    ),
+    "RHS300x150x6.0": SteelSection(
+        name="RHS300x150x6.0", weight=35.9, Fy=245, Fu=290, A=4573, d=300, tw=6.0, bf=150, tf=6.0,
+        Ix=7.98e7, Sx=5.32e5, rx=132.1, Iy=2.18e7, Sy=2.91e5, ry=69.0,
+        Zx=6.18e5, Zy=3.36e5, J=6.98e7, Cw=0
+    ),
+    "RHS300x200x9.0": SteelSection(
+        name="RHS300x200x9.0", weight=66.8, Fy=345, Fu=400, A=8505, d=300, tw=9.0, bf=200, tf=9.0,
+        Ix=1.62e8, Sx=1.08e6, rx=138.0, Iy=7.52e7, Sy=7.52e5, ry=94.0,
+        Zx=1.26e6, Zy=8.68e5, J=1.68e8, Cw=0
+    ),
+}
+
+# ============================================================================
 # STEEL PLATE (เหล็กแผ่น)
 # ============================================================================
 @dataclass

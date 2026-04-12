@@ -6,6 +6,8 @@
   <title>Steel Structure Design — ออกแบบโครงสร้างเหล็ก (วสท. 011038-22)</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- Material Symbols (self-hosted SVG fallback in public/icons/) -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
   <style>
     /* ── Variables ─────────────────────────────────────────────── */
     :root {
@@ -180,6 +182,43 @@
     .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:5px; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
+    /* ── Material Symbols ──────────────────────────────────────────── */
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      vertical-align: middle;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .icon-sm  { font-size: 16px !important; }
+    .icon-md  { font-size: 20px !important; }
+    .icon-lg  { font-size: 24px !important; }
+    .icon-fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important; }
+
+    /* Tab icons */
+    .tab-btn { display:flex; align-items:center; gap:5px; }
+    .tab-btn .material-symbols-outlined { font-size:16px; opacity:.8; }
+    .tab-btn.active .material-symbols-outlined { opacity:1; }
+
+    /* Sidebar section titles with icons */
+    .sec-title-row { display:flex; align-items:center; gap:5px; margin-bottom:8px; }
+    .sec-title-row .material-symbols-outlined { font-size:14px; color:var(--blue); }
+    .sec-title-row .sec-title { margin:0; border:none; padding:0; }
+
+    /* Status icons */
+    .icon-pass { color:var(--pass); font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20; }
+    .icon-fail { color:var(--fail); font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20; }
+    .icon-warn { color:var(--warn); font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20; }
+
+    /* Header icon */
+    .header-icon { font-size:32px !important; font-variation-settings:'FILL' 0,'wght' 200,'GRAD' 0,'opsz' 48; color:rgba(255,255,255,.9); }
+
+    /* Button with icon */
+    .btn-icon { display:inline-flex; align-items:center; gap:5px; }
+    .btn-calc  { display:flex; align-items:center; justify-content:center; gap:6px; }
+    .btn-find  { display:flex; align-items:center; justify-content:center; gap:6px; }
+
     /* Tab panels — sidebar visibility */
     .tab-panel { display:none; }
     .sidebar.tab-panel.active { display:flex; flex-direction:column; }
@@ -210,13 +249,7 @@
 
 <!-- Header -->
 <header>
-  <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
-    <rect width="40" height="40" rx="8" fill="rgba(255,255,255,.12)"/>
-    <rect x="6" y="30" width="28" height="3" fill="#fff" rx="1"/>
-    <rect x="10" y="10" width="4" height="20" fill="#2e86ab" rx="1"/>
-    <rect x="26" y="10" width="4" height="20" fill="#2e86ab" rx="1"/>
-    <rect x="10" y="18" width="20" height="3" fill="rgba(255,255,255,.7)" rx="1"/>
-  </svg>
+  <span class="material-symbols-outlined header-icon">engineering</span>
   <div>
     <h1>โปรแกรมออกแบบโครงสร้างเหล็ก · Steel Structure Design</h1>
     <p>วสท. 011038-22 &nbsp;|&nbsp; ASD Method &nbsp;|&nbsp; Thai Engineering Standards</p>
@@ -225,11 +258,21 @@
 
 <!-- Tab Bar -->
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('purlin',this)">ออกแบบแป (Purlin)</button>
-  <button class="tab-btn" onclick="switchTab('beam',this)">ออกแบบคาน (Beam)</button>
-  <button class="tab-btn" onclick="switchTab('column',this)">ออกแบบเสา (Column)</button>
-  <button class="tab-btn" onclick="switchTab('connection',this)">รอยต่อ (Connection)</button>
-  <button class="tab-btn" onclick="switchTab('baseplate',this)">แผ่นฐาน (Base Plate)</button>
+  <button class="tab-btn active" onclick="switchTab('purlin',this)">
+    <span class="material-symbols-outlined">architecture</span>แป (Purlin)
+  </button>
+  <button class="tab-btn" onclick="switchTab('beam',this)">
+    <span class="material-symbols-outlined">straighten</span>คาน (Beam)
+  </button>
+  <button class="tab-btn" onclick="switchTab('column',this)">
+    <span class="material-symbols-outlined">layers</span>เสา (Column)
+  </button>
+  <button class="tab-btn" onclick="switchTab('connection',this)">
+    <span class="material-symbols-outlined">build</span>รอยต่อ (Connection)
+  </button>
+  <button class="tab-btn" onclick="switchTab('baseplate',this)">
+    <span class="material-symbols-outlined">construction</span>แผ่นฐาน (Base Plate)
+  </button>
 </div>
 
 <div class="workspace">
@@ -259,8 +302,12 @@
     <div class="field-row"><label>Cpi (+)</label><input type="number" id="p-cpi-pos" value="0.18" step="0.01"></div>
     <div class="field-row"><label>Cpi (-)</label><input type="number" id="p-cpi-neg" value="-0.18" step="0.01"></div>
   </div>
-  <button class="btn-calc" onclick="calculate('purlin')" id="btn-purlin">คำนวณ (Calculate)</button>
-  <button class="btn-find" onclick="findSection('purlin')">ค้นหาหน้าตัดประหยัดสุด</button>
+  <button class="btn-calc" onclick="calculate('purlin')" id="btn-purlin">
+    <span class="material-symbols-outlined icon-sm">calculate</span>คำนวณ (Calculate)
+  </button>
+  <button class="btn-find" onclick="findSection('purlin')">
+    <span class="material-symbols-outlined icon-sm">table_view</span>ค้นหาหน้าตัดประหยัดสุด
+  </button>
 </div>
 
 <!-- ══════════════════════ BEAM SIDEBAR ══════════════════════ -->
@@ -286,7 +333,9 @@
     <div class="field-row"><label>Point DL</label><input type="number" id="b-pdl" value="0" step="1" min="0"></div>
     <div class="field-row"><label>Point LL</label><input type="number" id="b-pll" value="0" step="1" min="0"></div>
   </div>
-  <button class="btn-calc" onclick="calculate('beam')" id="btn-beam">คำนวณ (Calculate)</button>
+  <button class="btn-calc" onclick="calculate('beam')" id="btn-beam">
+    <span class="material-symbols-outlined icon-sm">calculate</span>คำนวณ (Calculate)
+  </button>
 </div>
 
 <!-- ══════════════════════ COLUMN SIDEBAR ══════════════════════ -->
@@ -315,7 +364,9 @@
     <div class="field-row"><label>My DL</label><input type="number" id="c-mydl" value="0" step="1"></div>
     <div class="field-row"><label>My LL</label><input type="number" id="c-myll" value="0" step="1"></div>
   </div>
-  <button class="btn-calc" onclick="calculate('column')" id="btn-column">คำนวณ (Calculate)</button>
+  <button class="btn-calc" onclick="calculate('column')" id="btn-column">
+    <span class="material-symbols-outlined icon-sm">calculate</span>คำนวณ (Calculate)
+  </button>
 </div>
 
 <!-- ══════════════════════ CONNECTION SIDEBAR ══════════════════════ -->
@@ -348,7 +399,9 @@
     <div class="field-row"><label>Axial DL</label><input type="number" id="cn-adl" value="0" step="5"></div>
     <div class="field-row"><label>Axial LL</label><input type="number" id="cn-all" value="0" step="5"></div>
   </div>
-  <button class="btn-calc" onclick="calculate('connection')" id="btn-connection">คำนวณ (Calculate)</button>
+  <button class="btn-calc" onclick="calculate('connection')" id="btn-connection">
+    <span class="material-symbols-outlined icon-sm">calculate</span>คำนวณ (Calculate)
+  </button>
 </div>
 
 <!-- ══════════════════════ BASEPLATE SIDEBAR ══════════════════════ -->
@@ -378,7 +431,9 @@
     <div class="field-row"><label>Shear DL (kN)</label><input type="number" id="bp-sxdl" value="0" step="5" min="0"></div>
     <div class="field-row"><label>Shear LL (kN)</label><input type="number" id="bp-sxll" value="0" step="5" min="0"></div>
   </div>
-  <button class="btn-calc" onclick="calculate('baseplate')" id="btn-baseplate">คำนวณ (Calculate)</button>
+  <button class="btn-calc" onclick="calculate('baseplate')" id="btn-baseplate">
+    <span class="material-symbols-outlined icon-sm">calculate</span>คำนวณ (Calculate)
+  </button>
 </div>
 
 <!-- ══════════════════════ RESULTS PANEL ══════════════════════ -->
@@ -392,16 +447,16 @@
 
   <div class="results-toolbar">
     <h2 id="panel-title">ผลการคำนวณ</h2>
-    <button class="btn-pdf" onclick="exportPDF()" id="btn-pdf" style="display:none">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    <button class="btn-pdf btn-icon" onclick="exportPDF()" id="btn-pdf" style="display:none">
+      <span class="material-symbols-outlined icon-sm">picture_as_pdf</span>
       Export PDF
     </button>
   </div>
 
   <div class="placeholder" id="placeholder">
-    <div style="font-size:3rem;margin-bottom:10px;opacity:.25">🏗️</div>
+    <span class="material-symbols-outlined icon-lg" style="font-size:56px;opacity:.18;display:block;margin-bottom:10px;font-variation-settings:'FILL' 0,'wght' 200,'GRAD' 0,'opsz' 48">engineering</span>
     <p style="font-size:.95rem;font-weight:600;margin:8px 0 4px;color:#888">ยังไม่มีผลการคำนวณ</p>
-    <p style="font-size:.82rem;color:#aaa">กรอกข้อมูลด้านซ้าย แล้วกด <em>คำนวณ</em></p>
+    <p style="font-size:.82rem;color:#aaa">กรอกข้อมูลด้านซ้าย แล้วกด <span class="material-symbols-outlined icon-sm" style="vertical-align:middle;font-size:14px;color:#bbb">calculate</span> <em>คำนวณ</em></p>
   </div>
 
   <div id="results-content" style="display:none"></div>
@@ -478,7 +533,7 @@ async function calculate(mod) {
   } catch(e) {
     showError('เชื่อมต่อ API ไม่ได้: '+e.message);
   } finally {
-    btn.innerHTML = 'คำนวณ (Calculate)';
+    btn.innerHTML = '<span class="material-symbols-outlined icon-sm">calculate</span>คำนวณ (Calculate)';
     btn.disabled = false;
   }
 }
@@ -546,8 +601,8 @@ function renderResults(mod, data) {
   let html = '';
   // Summary card
   const badge = data.is_ok
-    ? '<span class="badge-pass">✓ ผ่าน (ADEQUATE)</span>'
-    : '<span class="badge-fail">✗ ไม่ผ่าน (INADEQUATE)</span>';
+    ? '<span class="badge-pass"><span class="material-symbols-outlined icon-sm icon-fill icon-pass">check_circle</span> ผ่าน (ADEQUATE)</span>'
+    : '<span class="badge-fail"><span class="material-symbols-outlined icon-sm icon-fill icon-fail">cancel</span> ไม่ผ่าน (INADEQUATE)</span>';
 
   if (mod==='purlin')    html = summaryPurlin(data,badge);
   else if (mod==='beam') html = summaryBeam(data,badge);

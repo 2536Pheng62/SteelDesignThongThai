@@ -14,12 +14,12 @@ from typing import Dict, Optional
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# Third-party imports for PDF Export
+# Report Generator (PDF)
 try:
-    from reportlab.lib.pagesizes import letter
-    from reportlab.platypus import SimpleDocTemplate, Paragraph
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import inch
+    from report_generator import (
+        generate_beam_report, generate_column_report,
+        generate_combined_report, ProjectInfo,
+    )
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
@@ -399,6 +399,8 @@ class SteelStructureDesignApp:
         button_frame.grid(row=1, column=0, padx=10, pady=10)
         ttk.Button(button_frame, text="คำนวณคาน (Calculate)", command=self.calculate_beam).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="ค้นหาหน้าตัดประหยัดสุด", command=self.find_beam_section).pack(side=tk.LEFT, padx=5)
+        if REPORTLAB_AVAILABLE:
+            ttk.Button(button_frame, text="Export PDF รายการคำนวณ", command=self.export_beam_pdf).pack(side=tk.LEFT, padx=5)
         
         # Output
         output_frame = ttk.LabelFrame(scrollable_frame, text="ผลลัพธ์ - Beam Results")
@@ -445,11 +447,17 @@ class SteelStructureDesignApp:
                 deflection_type=defl_type
             )
             result = design.check_beam(loads)
+            result.details["properties"]["Ix"] = section.Ix
             report = format_beam_report(result, section_name, span)
-            
+
+            # Store for PDF export
+            self._beam_result = result
+            self._beam_section_name = section_name
+            self._beam_span = span
+
             self.beam_results_text.delete(1.0, tk.END)
             self.beam_results_text.insert(tk.END, report)
-            
+
             status = "ผ่าน" if result.is_ok else "ไม่ผ่าน"
             self.status_var.set(f"Beam: {status} - {section_name}")
             
@@ -581,6 +589,8 @@ class SteelStructureDesignApp:
         button_frame.grid(row=1, column=0, padx=10, pady=10)
         ttk.Button(button_frame, text="คำนวณเสา (Calculate)", command=self.calculate_column).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="ค้นหาหน้าตัดประหยัดสุด", command=self.find_column_section).pack(side=tk.LEFT, padx=5)
+        if REPORTLAB_AVAILABLE:
+            ttk.Button(button_frame, text="Export PDF รายการคำนวณ", command=self.export_column_pdf).pack(side=tk.LEFT, padx=5)
         
         # Output
         output_frame = ttk.LabelFrame(scrollable_frame, text="ผลลัพธ์ - Column Results")
@@ -623,11 +633,18 @@ class SteelStructureDesignApp:
             
             design = ColumnDesign(section=section, height=height, Kx=Kx, Ky=Ky)
             result = design.check_combined_loading(loads)
+            result.Fy = section.Fy
+
+            # Store for PDF export
+            self._column_result = result
+            self._column_section_name = section_name
+            self._column_height = height
+
             report = format_column_report(result, section_name, height)
-            
+
             self.column_results_text.delete(1.0, tk.END)
             self.column_results_text.insert(tk.END, report)
-            
+
             status = "ผ่าน" if result.is_ok else "ไม่ผ่าน"
             self.status_var.set(f"Column: {status} - {section_name}")
             
@@ -686,6 +703,106 @@ class SteelStructureDesignApp:
         except Exception as e:
             messagebox.showerror("ข้อผิดพลาด", str(e))
     
+    # ========================================================================
+    # PDF EXPORT
+    # ========================================================================
+
+    def _collect_project_info(self) -> "ProjectInfo":
+        """Open a dialog to collect project metadata, return ProjectInfo."""
+        dialog = tk.Toplevel(self.master)
+        dialog.title("ข้อมูลโครงการสำหรับรายการคำนวณ")
+        dialog.geometry("440x340")
+        dialog.grab_set()
+        dialog.resizable(False, False)
+
+        fields = [
+            ("ชื่อโครงการ",   "project_name",  "โครงการ"),
+            ("เลขที่โครงการ", "project_no",    ""),
+            ("เจ้าของโครงการ","client",         ""),
+            ("สถานที่",       "location",       ""),
+            ("ออกแบบโดย",     "engineer",       ""),
+            ("ตรวจสอบโดย",    "checker",        ""),
+        ]
+        entries = {}
+        for i, (label, key, default) in enumerate(fields):
+            ttk.Label(dialog, text=label + ":").grid(row=i, column=0, sticky="e",
+                                                      padx=10, pady=4)
+            e = ttk.Entry(dialog, width=32)
+            e.insert(0, default)
+            e.grid(row=i, column=1, padx=10, pady=4)
+            entries[key] = e
+
+        result_holder = [None]
+
+        def on_ok():
+            result_holder[0] = ProjectInfo(
+                **{k: v.get().strip() for k, v in entries.items()}
+            )
+            dialog.destroy()
+
+        def on_cancel():
+            dialog.destroy()
+
+        btn_frame = ttk.Frame(dialog)
+        btn_frame.grid(row=len(fields), column=0, columnspan=2, pady=12)
+        ttk.Button(btn_frame, text="สร้าง PDF", command=on_ok).pack(side=tk.LEFT, padx=8)
+        ttk.Button(btn_frame, text="ยกเลิก", command=on_cancel).pack(side=tk.LEFT, padx=8)
+
+        self.master.wait_window(dialog)
+        return result_holder[0]
+
+    def export_beam_pdf(self):
+        if not REPORTLAB_AVAILABLE:
+            messagebox.showerror("ข้อผิดพลาด", "reportlab ไม่ได้ติดตั้ง")
+            return
+        result = getattr(self, "_beam_result", None)
+        if result is None:
+            messagebox.showwarning("คำเตือน", "กรุณาคำนวณคานก่อน แล้วค่อย Export PDF")
+            return
+        proj = self._collect_project_info()
+        if proj is None:
+            return
+        path = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF files", "*.pdf")],
+            initialfile=f"beam_{self._beam_section_name}_{self._beam_span}m.pdf",
+            title="บันทึกรายการคำนวณคาน",
+        )
+        if not path:
+            return
+        try:
+            generate_beam_report(result, self._beam_section_name,
+                                  self._beam_span, proj, path)
+            messagebox.showinfo("สำเร็จ", f"บันทึก PDF เรียบร้อย\n{path}")
+        except Exception as e:
+            messagebox.showerror("ข้อผิดพลาด", str(e))
+
+    def export_column_pdf(self):
+        if not REPORTLAB_AVAILABLE:
+            messagebox.showerror("ข้อผิดพลาด", "reportlab ไม่ได้ติดตั้ง")
+            return
+        result = getattr(self, "_column_result", None)
+        if result is None:
+            messagebox.showwarning("คำเตือน", "กรุณาคำนวณเสาก่อน แล้วค่อย Export PDF")
+            return
+        proj = self._collect_project_info()
+        if proj is None:
+            return
+        path = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF files", "*.pdf")],
+            initialfile=f"column_{self._column_section_name}_{self._column_height}m.pdf",
+            title="บันทึกรายการคำนวณเสา",
+        )
+        if not path:
+            return
+        try:
+            generate_column_report(result, self._column_section_name,
+                                    self._column_height, proj, path)
+            messagebox.showinfo("สำเร็จ", f"บันทึก PDF เรียบร้อย\n{path}")
+        except Exception as e:
+            messagebox.showerror("ข้อผิดพลาด", str(e))
+
     # ========================================================================
     # CONNECTION TAB
     # ========================================================================

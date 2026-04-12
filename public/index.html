@@ -180,9 +180,9 @@
     .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:5px; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* Tab panels */
+    /* Tab panels — sidebar visibility */
     .tab-panel { display:none; }
-    .tab-panel.active { display:contents; }
+    .sidebar.tab-panel.active { display:flex; flex-direction:column; }
 
     /* ── PRINT / PDF ────────────────────────────────────────────── */
     @media print {
@@ -399,13 +399,9 @@
   </div>
 
   <div class="placeholder" id="placeholder">
-    <svg width="60" height="60" viewBox="0 0 64 64" fill="none">
-      <circle cx="32" cy="32" r="30" stroke="#888" stroke-width="2" fill="none"/>
-      <path d="M20 40V28l12-8 12 8v12" stroke="#888" stroke-width="2" fill="none"/>
-      <rect x="26" y="34" width="12" height="8" stroke="#888" stroke-width="2" fill="none"/>
-    </svg>
-    <p style="font-size:.95rem;font-weight:600;margin:8px 0 4px">ยังไม่มีผลการคำนวณ</p>
-    <p style="font-size:.82rem">กรอกข้อมูลด้านซ้าย แล้วกด <em>คำนวณ</em></p>
+    <div style="font-size:3rem;margin-bottom:10px;opacity:.25">🏗️</div>
+    <p style="font-size:.95rem;font-weight:600;margin:8px 0 4px;color:#888">ยังไม่มีผลการคำนวณ</p>
+    <p style="font-size:.82rem;color:#aaa">กรอกข้อมูลด้านซ้าย แล้วกด <em>คำนวณ</em></p>
   </div>
 
   <div id="results-content" style="display:none"></div>

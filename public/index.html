@@ -304,58 +304,47 @@
             }
         }
 
-        // Steel Section Database
-        const sections = {
-            C_CHANNELS: {
-                "C100x50x20x2.3": { weight: 3.67, Fy: 245, Fu: 290, A: 467, d: 100, tw: 2.3, bf: 50, tf: 2.3, Ix: 1.08e6, Sx: 2.15e4, rx: 48, Iy: 0.147e6, Sy: 4.4e3, ry: 17.7 },
-                "C150x65x20x4.0": { weight: 8.78, Fy: 245, Fu: 290, A: 1118, d: 150, tw: 4, bf: 65, tf: 4, Ix: 5.68e6, Sx: 7.58e4, rx: 71.3, Iy: 0.477e6, Sy: 10.7e3, ry: 20.7 },
-                "C200x75x25x4.5": { weight: 12.9, Fy: 345, Fu: 400, A: 1641, d: 200, tw: 4.5, bf: 75, tf: 4.5, Ix: 1.45e7, Sx: 1.45e5, rx: 94, Iy: 0.908e6, Sy: 17e3, ry: 23.5 }
-            },
-            H_BEAMS: {
-                "H150x150x7x10": { weight: 31.9, Fy: 245, Fu: 400, A: 4055, d: 150, tw: 7, bf: 150, tf: 10, Ix: 1.66e7, Sx: 2.21e5, rx: 64, Iy: 5.63e6, Sy: 7.51e4, ry: 37.3, Zx: 2.48e5 },
-                "H200x200x8x12": { weight: 50.5, Fy: 245, Fu: 400, A: 6428, d: 200, tw: 8, bf: 200, tf: 12, Ix: 4.77e7, Sx: 4.77e5, rx: 86.2, Iy: 1.60e7, Sy: 1.60e5, ry: 49.9, Zx: 5.36e5 },
-                "H250x250x9x14": { weight: 72.4, Fy: 245, Fu: 400, A: 9218, d: 250, tw: 9, bf: 250, tf: 14, Ix: 1.08e8, Sx: 8.67e5, rx: 108.4, Iy: 3.65e7, Sy: 2.92e5, ry: 62.9, Zx: 9.74e5 },
-                "H300x300x10x15": { weight: 94.5, Fy: 245, Fu: 400, A: 12020, d: 300, tw: 10, bf: 300, tf: 15, Ix: 2.04e8, Sx: 1.36e6, rx: 130.3, Iy: 6.75e7, Sy: 4.50e5, ry: 74.9, Zx: 1.53e6 }
-            },
-            I_BEAMS: {
-                "I150x100x5x7": { weight: 18.6, Fy: 245, A: 2370, d: 150, tw: 5, bf: 100, tf: 7, Ix: 8.35e6, Sx: 1.11e5, rx: 59.3, Iy: 1.34e6, Sy: 2.68e4, ry: 23.8 },
-                "I200x100x5.5x8": { weight: 24.2, Fy: 245, A: 3082, d: 200, tw: 5.5, bf: 100, tf: 8, Ix: 1.84e7, Sx: 1.84e5, rx: 77.3, Iy: 1.55e6, Sy: 3.10e4, ry: 22.4 },
-                "I250x125x6x9": { weight: 34.6, Fy: 245, A: 4410, d: 250, tw: 6, bf: 125, tf: 9, Ix: 4.05e7, Sx: 3.24e5, rx: 95.8, Iy: 3.13e6, Sy: 5.01e4, ry: 26.6 }
-            },
-            ANGLES: {
-                "L65x65x6": { weight: 5.82, Fy: 245, A: 741, d: 65, tw: 6, bf: 65, tf: 6, Ix: 2.38e5, Sx: 5.17e3, rx: 17.9, Iy: 2.38e5, Sy: 5.17e3, ry: 17.9 },
-                "L75x75x6": { weight: 6.76, Fy: 245, A: 861, d: 75, tw: 6, bf: 75, tf: 6, Ix: 4.03e5, Sx: 7.56e3, rx: 21.6, Iy: 4.03e5, Sy: 7.56e3, ry: 21.6 },
-                "L90x90x9": { weight: 11.9, Fy: 245, A: 1514, d: 90, tw: 9, bf: 90, tf: 9, Ix: 1.08e6, Sx: 1.66e4, rx: 26.7, Iy: 1.08e6, Sy: 1.66e4, ry: 26.7 }
-            },
-            PIPES: {
-                "SGP80A(89.1x3.5)": { weight: 7.39, Fy: 245, A: 940, d: 89.1, tw: 3.5, bf: 89.1, tf: 3.5, Ix: 1.08e6, Sx: 2.42e4, rx: 33.9, Iy: 1.08e6, Sy: 2.42e4, ry: 33.9 },
-                "SGP100A(114.3x3.5)": { weight: 9.56, Fy: 245, A: 1216, d: 114.3, tw: 3.5, bf: 114.3, tf: 3.5, Ix: 2.68e6, Sx: 4.68e4, rx: 47, Iy: 2.68e6, Sy: 4.68e4, ry: 47 },
-                "SGP150A(165.2x4.5)": { weight: 17.8, Fy: 245, A: 2268, d: 165.2, tw: 4.5, bf: 165.2, tf: 4.5, Ix: 1.18e7, Sx: 1.43e5, rx: 72.1, Iy: 1.18e7, Sy: 1.43e5, ry: 72.1 }
-            }
-        };
+        // Steel Section Database (Dynamic from API)
+        let sections = {};
 
         function getSection(name) {
-            for(const cat of Object.values(sections)) {
-                if(cat[name]) return cat[name];
-            }
-            return sections.C_CHANNELS["C150x65x20x4.0"];
+            // For older JS functions that still rely on local DB
+            return null; // Will be handled if needed, but we moved to API
         }
 
-        function populateSections() {
-            const allBeams = {...sections.H_BEAMS, ...sections.I_BEAMS};
-            const allSections = {...allBeams, ...sections.ANGLES, ...sections.PIPES};
-            ['b_section', 'c_section', 'bp_section'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) Object.keys(allSections).forEach(name => el.add(new Option(name, name)));
-            });
-            ['p_section'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) Object.keys(sections.C_CHANNELS).forEach(name => el.add(new Option(name, name)));
-            });
-            ['tr_section', 'br_section'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) Object.keys(allSections).forEach(name => el.add(new Option(name, name)));
-            });
+        async function populateSections() {
+            try {
+                const res = await callApi('sections', {});
+                if (!res) return;
+                
+                const allBeams = [...(res.h_beams || []), ...(res.i_beams || [])];
+                const allSections = [
+                    ...allBeams, 
+                    ...(res.angles || []), 
+                    ...(res.pipes || []), 
+                    ...(res.shs || []), 
+                    ...(res.rhs || []), 
+                    ...(res.c_channels || [])
+                ];
+                
+                ['b_section', 'c_section', 'bp_section', 'tr_section', 'br_section'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) {
+                        el.innerHTML = '';
+                        allSections.forEach(name => el.add(new Option(name, name)));
+                    }
+                });
+                
+                ['p_section'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) {
+                        el.innerHTML = '';
+                        (res.c_channels || []).forEach(name => el.add(new Option(name, name)));
+                    }
+                });
+            } catch(e) {
+                console.error("Failed to load sections from API:", e);
+            }
         }
 
         function showTab(tabName) {

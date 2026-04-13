@@ -1,20 +1,17 @@
 # Steel Structure Design Application - Requirements
 # Install with: pip install -r requirements.txt
 
-# GUI (included in Python standard library)
-# tkinter
+# Streamlit for Web UI
+streamlit>=1.30.0
 
 # Plotting
-# matplotlib>=3.5.0
+matplotlib>=3.5.0
 
 # PDF Generation
 reportlab>=3.6.0
 
 # Excel Export (optional)
-# openpyxl>=3.0.0
+openpyxl>=3.0.0
 
 # Diagram Generation (for visualization in PDF)
 numpy>=1.21.0
-
-# Data handling (optional enhancements)
-# pandas>=1.3.0

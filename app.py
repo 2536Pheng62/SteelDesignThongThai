@@ -1,27 +1,27 @@
 """
-Steel Structure Design Web App (โปรแกรมออกแบบโครงสร้างเหล็ก - เว็บแอป)
+Steel Structure Design Web App (โปรแกรมออกแบบโครงสร้างเหล็ก - Streamlit)
 Based on Thai Standards (มอก., วสท., มยผ.)
-Streamlit Web Application for Netlify Deployment
 """
 import streamlit as st
-import math
-import json
-from datetime import datetime
-
-# Import our design modules
 import sys
 import os
+
+# Add local path to import our modules
 sys.path.insert(0, os.path.dirname(__file__))
 
-from steel_sections import C_CHANNELS, H_BEAMS, I_BEAMS, STEEL_PIPES, RHS_SECTIONS, MATERIAL_GRADES
-from load_combinations import LOAD_COMBINATIONS_ASD, DEFLECTION_LIMITS
-from purlin import PurlinDesign
-from beam_design import BeamDesign, BeamLoad
-from column_design import ColumnDesign, ColumnLoad
+from steel_sections import (
+    get_all_sections, C_CHANNELS, H_BEAMS, I_BEAMS, 
+    STEEL_PIPES, SHS_SECTIONS, RHS_SECTIONS, EQUAL_ANGLES
+)
+from load_combinations import DEFLECTION_LIMITS
+from beam_design import BeamDesign, BeamLoad, format_beam_report
+from column_design import ColumnDesign, ColumnLoad, format_column_report
+from truss_design import TrussDesign, TrussLoad, format_truss_report
+from footing_design import FootingDesign, FootingLoad, format_footing_report
 
-# Page configuration
+# Page config
 st.set_page_config(
-    page_title="Steel Structure Design - วสท. 011038-22",
+    page_title="Steel Structure Design",
     page_icon="🏗️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -30,343 +30,164 @@ st.set_page_config(
 # Custom CSS
 st.markdown("""
 <style>
-    .main-header {
-        font-size: 2.5rem;
-        color: #1B4F72;
-        text-align: center;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-    }
-    .sub-header {
-        font-size: 1.2rem;
-        color: #5D6D7E;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .pass-box {
-        background-color: #D4F5E4;
-        border-left: 5px solid #1A7A4A;
-        padding: 1rem;
-        border-radius: 5px;
-        margin: 1rem 0;
-    }
-    .fail-box {
-        background-color: #FDE8E8;
-        border-left: 5px solid #C0392B;
-        padding: 1rem;
-        border-radius: 5px;
-        margin: 1rem 0;
-    }
-    .info-box {
-        background-color: #E8F4FD;
-        border-left: 5px solid #2E86AB;
-        padding: 1rem;
-        border-radius: 5px;
-        margin: 1rem 0;
-    }
+    .main-header { font-size: 2.2rem; color: #1B4F72; font-weight: bold; margin-bottom: 0.5rem; }
+    .sub-header { font-size: 1.1rem; color: #5D6D7E; margin-bottom: 2rem; }
+    .stButton>button { width: 100%; border-radius: 5px; font-weight: bold; }
+    .report-box { background-color: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #1B4F72; font-family: monospace; white-space: pre-wrap; }
 </style>
 """, unsafe_allow_html=True)
 
-# Session state for results
-if 'purlin_result' not in st.session_state:
-    st.session_state.purlin_result = None
-if 'beam_result' not in st.session_state:
-    st.session_state.beam_result = None
-if 'column_result' not in st.session_state:
-    st.session_state.column_result = None
-
-# ============================================================================
-# HEADER
-# ============================================================================
 st.markdown('<div class="main-header">🏗️ โปรแกรมออกแบบโครงสร้างเหล็ก</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Steel Structure Design per วสท. 011038-22 | มอก. 1227-2558 | มอก. 107-2533</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">มาตรฐาน วสท. 011038-22 | มอก. 1227-2558 | มอก. 107-2533</div>', unsafe_allow_html=True)
+
+all_sections = get_all_sections()
+
+# Tabs
+tab_beam, tab_col, tab_truss, tab_footing = st.tabs([
+    "📏 คาน (Beam)", "🏛️ เสา (Column)", "🔺 โครงถัก (Truss)", "🦶 ฐานราก (Footing)"
+])
 
 # ============================================================================
-# SIDEBAR - Project Info
+# BEAM TAB
 # ============================================================================
-with st.sidebar:
-    st.header("📋 ข้อมูลโครงการ")
-    project_name = st.text_input("ชื่อโครงการ", value="โครงการออกแบบโครงสร้างเหล็ก")
-    engineer = st.text_input("ผู้ออกแบบ", value="")
-    checker = st.text_input("ผู้ตรวจสอบ", value="")
-    project_date = st.date_input("วันที่", value=datetime.now())
-    
-    st.divider()
-    st.header("📐 มาตรฐานการออกแบบ")
-    st.info("""
-    **วัสดุ:** มอก. 1227-2558, มอก. 107-2533  
-    **การออกแบบ:** วสท. 011038-22 (ASD)  
-    **แรงลม:** มยผ. 1311-50  
-    **แผ่นดินไหว:** มยผ. 1301/1302-61
-    """)
-    
-    st.divider()
-    st.header("🔧 เกรดวัสดุ")
-    selected_grade = st.selectbox(
-        "Material Grade",
-        options=list(MATERIAL_GRADES.keys()),
-        help="เลือกเกรดเหล็กตาม มอก. 1227-2558"
-    )
-    st.caption(f"Fy = {MATERIAL_GRADES[selected_grade].Fy} MPa, Fu = {MATERIAL_GRADES[selected_grade].Fu} MPa")
-
-# ============================================================================
-# MAIN CONTENT - Tabs
-# ============================================================================
-tab1, tab2, tab3 = st.tabs(["🏠 ออกแบบแป (Purlin)", "📏 ออกแบบคาน (Beam)", "🏛️ ออกแบบเสา (Column)"])
-
-# ============================================================================
-# TAB 1: PURLIN DESIGN
-# ============================================================================
-with tab1:
-    st.header("🏠 ออกแบบแปหลังคา (Roof Purlin Design)")
-    
+with tab_beam:
+    st.header("ออกแบบคานเหล็ก (Beam Design)")
     col1, col2 = st.columns(2)
-    
     with col1:
-        st.subheader("📥 ข้อมูลนำเข้า")
-        
-        # Section selection
-        section_name = st.selectbox(
-            "หน้าตัดเหล็ก (C-Channel)",
-            options=list(C_CHANNELS.keys()),
-            index=4  # Default to C150x65x20x4.0
-        )
-        
-        # Geometry
-        st.markdown("**เรขาคณิต**")
-        purlin_span = st.number_input("ความยาวช่วงแป (m)", min_value=1.0, max_value=20.0, value=6.0, step=0.5)
-        purlin_spacing = st.number_input("ระยะห่างแป (m)", min_value=0.5, max_value=3.0, value=1.2, step=0.1)
-        roof_slope = st.number_input("มุมลาดชันหลังคา (°)", min_value=0.0, max_value=45.0, value=15.0, step=1.0)
-        
+        st.subheader("📥 ข้อมูลหน้าตัดและเรขาคณิต")
+        beam_opts = list(H_BEAMS.keys()) + list(I_BEAMS.keys()) + list(SHS_SECTIONS.keys()) + list(RHS_SECTIONS.keys())
+        b_sec_name = st.selectbox("หน้าตัดเหล็ก", options=beam_opts, index=0, key="b_sec")
+        b_method = st.selectbox("วิธีการออกแบบ", ["ASD", "LRFD"], key="b_method")
+        b_span = st.number_input("ช่วงคาน (m)", min_value=0.5, value=6.0, step=0.5, key="b_span")
+        b_type = st.radio("ประเภทคาน", ["Simply Supported", "Cantilever"], horizontal=True, key="b_type")
+        b_bracing = st.selectbox("การยึดหน่วงข้าง", ["continuous", "ends_only", "intermediate"], key="b_brace")
+        b_defl = st.selectbox("เกณฑ์การแอ่นตัว", list(DEFLECTION_LIMITS.keys()), key="b_defl")
+    
     with col2:
         st.subheader("⚖️ น้ำหนักบรรทุก")
+        b_dl = st.number_input("Dead Load แบบแผ่ (kN/m)", value=10.0, step=1.0, key="b_dl")
+        b_ll = st.number_input("Live Load แบบแผ่ (kN/m)", value=15.0, step=1.0, key="b_ll")
+        st.markdown("---")
+        b_pdl = st.number_input("Point Dead Load กลางคาน (kN)", value=0.0, step=5.0, key="b_pdl")
+        b_pll = st.number_input("Point Live Load กลางคาน (kN)", value=0.0, step=5.0, key="b_pll")
+
+    if st.button("คำนวณคาน", type="primary", key="btn_beam"):
+        sec = all_sections[b_sec_name]
+        loads = BeamLoad(dead_load=b_dl, live_load=b_ll, point_load_D=b_pdl, point_load_L=b_pll)
+        design = BeamDesign(section=sec, span=b_span, method=b_method, is_cantilever=(b_type=="Cantilever"), lateral_bracing=b_bracing, deflection_type=b_defl)
+        res = design.check_beam(loads)
         
-        # Loads
-        st.markdown("**น้ำหนักคงที่และจร**")
-        dl_kPa = st.number_input("Dead Load (kPa)", min_value=0.0, value=0.147, step=0.01)
-        ll_kPa = st.number_input("Live Load (kPa)", min_value=0.0, value=0.50, step=0.05)
+        st.markdown("### ผลลัพธ์")
+        if res.is_ok: st.success(f"✅ {res.status}")
+        else: st.error(f"❌ {res.status}")
         
-        # Wind loads
-        st.markdown("**น้ำหนักลม**")
-        wind_speed = st.number_input("ความเร็วลม (m/s)", min_value=20.0, max_value=50.0, value=30.0, step=1.0)
-        building_height = st.number_input("ความสูงอาคาร (m)", min_value=3.0, max_value=50.0, value=6.0, step=1.0)
-        exposure_cat = st.selectbox("ประเภทสภาพภูมิ", options=['B', 'C', 'D'], index=1)
-        cpi_pos = st.number_input("Cpi (บวก)", value=0.18, step=0.01)
-        cpi_neg = st.number_input("Cpi (ลบ)", value=-0.18, step=0.01)
-    
-    # Calculate button
-    if st.button("🔢 คำนวณแป (Calculate Purlin)", type="primary", use_container_width=True):
-        try:
-            design = PurlinDesign(
-                section_name=section_name,
-                purlin_span=purlin_span,
-                purlin_spacing=purlin_spacing,
-                roof_slope_degree=roof_slope,
-                dead_load_kPa=dl_kPa,
-                live_load_kPa=ll_kPa,
-                basic_wind_speed_mps=wind_speed,
-                building_height_m=building_height,
-                exposure_category=exposure_cat,
-                internal_pressure_coeff_pos=cpi_pos,
-                internal_pressure_coeff_neg=cpi_neg,
-            )
-            results = design.run_check()
-            st.session_state.purlin_result = results
-            
-            st.success(f"✅ การคำนวณเสร็จสิ้น - {section_name}")
-        except Exception as e:
-            st.error(f"❌ เกิดข้อผิดพลาด: {str(e)}")
-    
-    # Display results
-    if st.session_state.purlin_result:
-        results = st.session_state.purlin_result
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Stress Ratio (U.C.)", f"{res.stress_ratio:.3f}")
+        c2.metric("Shear Ratio", f"{res.shear_ratio:.3f}")
+        c3.metric("Deflection Ratio", f"{res.deflection_ratio:.3f}")
         
-        st.divider()
-        st.subheader("📊 ผลลัพธ์การออกแบบ")
-        
-        is_ok = results.get('is_ok', False)
-        if is_ok:
-            st.markdown('<div class="pass-box">✅ <b>ผ่าน (ADEQUATE)</b> - หน้าตัดสามารถรับน้ำหนักได้</div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div class="fail-box">❌ <b>ไม่ผ่าน (INADEQUATE)</b> - หน้าตัดไม่สามารถรับน้ำหนักได้</div>', unsafe_allow_html=True)
-        
-        # Display key results
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Stress Ratio", f"{results.get('Stress Check', {}).get('Interaction Ratio', 0):.3f}")
-        col2.metric("Shear Ratio", f"{results.get('Shear Check', {}).get('Ratio', 0):.3f}")
-        col3.metric("Deflection LL (mm)", f"{results.get('Calculated Deflection (mm)', {}).get('Live Load Vertical', 0):.2f}")
-        col4.metric("Final Result", "✅ ผ่าน" if is_ok else "❌ ไม่ผ่าน")
-        
-        # Detailed results
-        with st.expander("📄 ดูรายละเอียดการคำนวณ"):
-            st.json(results, expanded=False)
+        st.markdown(f'<div class="report-box">{format_beam_report(res, b_sec_name, b_span)}</div>', unsafe_allow_html=True)
 
 # ============================================================================
-# TAB 2: BEAM DESIGN
+# COLUMN TAB
 # ============================================================================
-with tab2:
-    st.header("📏 ออกแบบคานเหล็ก (Steel Beam Design)")
-    
+with tab_col:
+    st.header("ออกแบบเสาเหล็ก (Column Design)")
     col1, col2 = st.columns(2)
-    
     with col1:
-        st.subheader("📥 ข้อมูลนำเข้า")
-        
-        # Section selection
-        beam_sections = {**H_BEAMS, **I_BEAMS}
-        section_name = st.selectbox(
-            "หน้าตัดเหล็ก",
-            options=list(beam_sections.keys()),
-            index=4  # Default to H200x200x8x12
-        )
-        
-        span = st.number_input("ช่วงคาน (m)", min_value=1.0, max_value=30.0, value=6.0, step=0.5)
-        beam_type = st.radio("ประเภทคาน", ["Simply Supported", "Cantilever"], horizontal=True)
-        bracing = st.selectbox("การยึดหน่วงข้าง", ["continuous", "ends_only", "intermediate"])
-        defl_type = st.selectbox("เกณฑ์การแอ่นตัว", list(DEFLECTION_LIMITS.keys()))
-        
-    with col2:
-        st.subheader("⚖️ น้ำหนักบรรทุก")
-        
-        st.markdown("**Distributed Loads (kN/m)**")
-        beam_dl = st.number_input("Dead Load", min_value=0.0, value=10.0, step=1.0)
-        beam_ll = st.number_input("Live Load", min_value=0.0, value=15.0, step=1.0)
-        beam_wl = st.number_input("Wind Load", min_value=0.0, value=0.0, step=0.5)
-        
-        st.markdown("**Point Loads at Midspan (kN)**")
-        point_dl = st.number_input("Point DL", min_value=0.0, value=0.0, step=5.0)
-        point_ll = st.number_input("Point LL", min_value=0.0, value=0.0, step=5.0)
-    
-    if st.button("🔢 คำนวณคาน (Calculate Beam)", type="primary", use_container_width=True):
-        try:
-            section = beam_sections[section_name]
-            loads = BeamLoad(
-                dead_load=beam_dl,
-                live_load=beam_ll,
-                wind_load=beam_wl,
-                point_load_D=point_dl,
-                point_load_L=point_ll,
-            )
-            
-            design = BeamDesign(
-                section=section,
-                span=span,
-                is_cantilever=(beam_type == "Cantilever"),
-                lateral_bracing=bracing,
-                deflection_type=defl_type
-            )
-            result = design.check_beam(loads)
-            st.session_state.beam_result = {
-                'result': result,
-                'section_name': section_name,
-                'span': span
-            }
-            
-            st.success(f"✅ การคำนวณเสร็จสิ้น - {section_name}")
-        except Exception as e:
-            st.error(f"❌ เกิดข้อผิดพลาด: {str(e)}")
-    
-    if st.session_state.beam_result:
-        beam_data = st.session_state.beam_result
-        result = beam_data['result']
-        
-        st.divider()
-        st.subheader("📊 ผลลัพธ์การออกแบบ")
-        
-        if result.is_ok:
-            st.markdown('<div class="pass-box">✅ <b>ผ่าน (ADEQUATE)</b></div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div class="fail-box">❌ <b>ไม่ผ่าน (INADEQUATE)</b></div>', unsafe_allow_html=True)
-        
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Stress Ratio", f"{result.stress_ratio:.3f}")
-        col2.metric("Shear Ratio", f"{result.shear_ratio:.3f}")
-        col3.metric("Deflection Ratio", f"{result.deflection_ratio:.3f}")
-
-# ============================================================================
-# TAB 3: COLUMN DESIGN
-# ============================================================================
-with tab3:
-    st.header("🏛️ ออกแบบเสาเหล็ก (Steel Column Design)")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("📥 ข้อมูลนำเข้า")
-        
-        col_sections = {**H_BEAMS, **I_BEAMS, **STEEL_PIPES}
-        section_name = st.selectbox(
-            "หน้าตัดเหล็ก",
-            options=list(col_sections.keys()),
-            index=5
-        )
-        
-        height = st.number_input("ความสูงเสา (m)", min_value=1.0, max_value=20.0, value=4.0, step=0.5)
-        kx = st.number_input("Kx (Effective Length Factor X)", min_value=0.5, max_value=2.5, value=1.0, step=0.1)
-        ky = st.number_input("Ky (Effective Length Factor Y)", min_value=0.5, max_value=2.5, value=1.0, step=0.1)
+        st.subheader("📥 ข้อมูลหน้าตัดและเรขาคณิต")
+        col_opts = list(H_BEAMS.keys()) + list(I_BEAMS.keys()) + list(STEEL_PIPES.keys()) + list(SHS_SECTIONS.keys()) + list(RHS_SECTIONS.keys())
+        c_sec_name = st.selectbox("หน้าตัดเหล็ก", options=col_opts, index=0, key="c_sec")
+        c_method = st.selectbox("วิธีการออกแบบ", ["ASD", "LRFD"], key="c_method")
+        c_height = st.number_input("ความสูงเสา (m)", min_value=0.5, value=4.0, step=0.5, key="c_height")
+        cc1, cc2 = st.columns(2)
+        c_kx = cc1.number_input("Kx (ตัวคูณความยาว)", min_value=0.1, value=1.0, step=0.1, key="c_kx")
+        c_ky = cc2.number_input("Ky (ตัวคูณความยาว)", min_value=0.1, value=1.0, step=0.1, key="c_ky")
         
     with col2:
         st.subheader("⚖️ แรงกระทำ")
+        c_pdl = st.number_input("Axial Dead Load (kN)", value=100.0, step=10.0, key="c_pdl")
+        c_pll = st.number_input("Axial Live Load (kN)", value=150.0, step=10.0, key="c_pll")
+        st.markdown("---")
+        cc3, cc4 = st.columns(2)
+        c_mx = cc3.number_input("Moment X (kN-m)", value=0.0, step=5.0, key="c_mx")
+        c_my = cc4.number_input("Moment Y (kN-m)", value=0.0, step=5.0, key="c_my")
+
+    if st.button("คำนวณเสา", type="primary", key="btn_col"):
+        sec = all_sections[c_sec_name]
+        loads = ColumnLoad(axial_load_D=c_pdl, axial_load_L=c_pll, moment_x_D=c_mx, moment_y_D=c_my)
+        design = ColumnDesign(section=sec, height=c_height, method=c_method, Kx=c_kx, Ky=c_ky)
+        res = design.check_combined_loading(loads)
         
-        st.markdown("**Axial Loads (kN)**")
-        axial_dl = st.number_input("Axial DL", min_value=0.0, value=100.0, step=10.0)
-        axial_ll = st.number_input("Axial LL", min_value=0.0, value=150.0, step=10.0)
+        st.markdown("### ผลลัพธ์")
+        if res.is_ok: st.success(f"✅ {res.status}")
+        else: st.error(f"❌ {res.status}")
         
-        st.markdown("**Moments (kN-m)**")
-        mx = st.number_input("Moment X", min_value=0.0, value=0.0, step=5.0)
-        my = st.number_input("Moment Y", min_value=0.0, value=0.0, step=5.0)
-    
-    if st.button("🔢 คำนวณเสา (Calculate Column)", type="primary", use_container_width=True):
-        try:
-            section = col_sections[section_name]
-            loads = ColumnLoad(
-                axial_dead=axial_dl,
-                axial_live=axial_ll,
-                moment_x=mx,
-                moment_y=my,
-            )
-            
-            design = ColumnDesign(
-                section=section,
-                height=height,
-                kx=kx,
-                ky=ky
-            )
-            result = design.check_column(loads)
-            st.session_state.column_result = {
-                'result': result,
-                'section_name': section_name,
-                'height': height
-            }
-            
-            st.success(f"✅ การคำนวณเสร็จสิ้น - {section_name}")
-        except Exception as e:
-            st.error(f"❌ เกิดข้อผิดพลาด: {str(e)}")
-    
-    if st.session_state.column_result:
-        col_data = st.session_state.column_result
-        result = col_data['result']
+        c1, c2 = st.columns(2)
+        c1.metric("Interaction Ratio (U.C.)", f"{res.interaction_ratio:.3f}")
+        c2.metric("Max Slenderness (KL/r)", f"{res.critical_slenderness:.1f}")
         
-        st.divider()
-        st.subheader("📊 ผลลัพธ์การออกแบบ")
-        
-        if result.is_ok:
-            st.markdown('<div class="pass-box">✅ <b>ผ่าน (ADEQUATE)</b></div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div class="fail-box">❌ <b>ไม่ผ่าน (INADEQUATE)</b></div>', unsafe_allow_html=True)
-        
-        col1, col2 = st.columns(2)
-        col1.metric("Axial Ratio", f"{result.axial_ratio:.3f}")
-        col2.metric("Interaction Ratio", f"{result.interaction_ratio:.3f}")
+        st.markdown(f'<div class="report-box">{format_column_report(res, c_sec_name, c_height)}</div>', unsafe_allow_html=True)
 
 # ============================================================================
-# FOOTER
+# TRUSS TAB
 # ============================================================================
-st.divider()
-st.markdown(f"""
-<div style="text-align: center; color: #5D6D7E; font-size: 0.9rem;">
-    <p>🏗️ Steel Structure Design Application | วสท. 011038-22 | มอก. 1227-2558 | มอก. 107-2533</p>
-    <p>Project: {project_name} | Engineer: {engineer or '—'} | Date: {project_date.strftime('%d/%m/%Y')}</p>
-    <p>⚠️ โปรแกรมเป็นเครื่องมือช่วยคำนวณเบื้องต้น ควรตรวจสอบผลลัพธ์ด้วยวิศวกรโครงสร้าง</p>
-</div>
-""", unsafe_allow_html=True)
+with tab_truss:
+    st.header("ออกแบบชิ้นส่วนโครงถัก (Truss Member)")
+    col1, col2 = st.columns(2)
+    with col1:
+        tr_opts = list(EQUAL_ANGLES.keys()) + list(STEEL_PIPES.keys()) + list(SHS_SECTIONS.keys())
+        tr_sec_name = st.selectbox("หน้าตัดเหล็ก", options=tr_opts, index=0, key="tr_sec")
+        tr_method = st.selectbox("วิธีการออกแบบ", ["ASD", "LRFD"], key="tr_method")
+        tr_length = st.number_input("ความยาวชิ้นส่วน (m)", min_value=0.1, value=3.0, step=0.5, key="tr_len")
+        tr_k = st.number_input("K (ตัวคูณความยาว)", min_value=0.1, value=1.0, step=0.1, key="tr_k")
+    with col2:
+        tr_dl = st.number_input("แรงแนวแกน DL (kN) [+ ดึง, - อัด]", value=50.0, step=10.0, key="tr_dl")
+        tr_ll = st.number_input("แรงแนวแกน LL (kN) [+ ดึง, - อัด]", value=30.0, step=10.0, key="tr_ll")
+
+    if st.button("คำนวณโครงถัก", type="primary", key="btn_truss"):
+        sec = all_sections[tr_sec_name]
+        loads = TrussLoad(force_D=tr_dl, force_L=tr_ll)
+        design = TrussDesign(section=sec, length=tr_length, method=tr_method, K=tr_k)
+        res = design.check_member(loads)
+        
+        st.markdown("### ผลลัพธ์")
+        if res.is_ok: st.success(f"✅ {res.status}")
+        else: st.error(f"❌ {res.status}")
+        
+        c1, c2 = st.columns(2)
+        c1.metric("Force Ratio", f"{res.ratio:.3f}")
+        c2.metric("Slenderness (L/r)", f"{res.slenderness:.1f} / {res.limit_slenderness:.0f}")
+        
+        st.markdown(f'<div class="report-box">{format_truss_report(res, tr_sec_name, tr_length)}</div>', unsafe_allow_html=True)
+
+# ============================================================================
+# FOOTING TAB
+# ============================================================================
+with tab_footing:
+    st.header("ออกแบบฐานรากแผ่ (Isolated Footing)")
+    col1, col2 = st.columns(2)
+    with col1:
+        f_w = st.number_input("ความกว้าง B (m)", min_value=0.5, value=1.5, step=0.1, key="f_w")
+        f_l = st.number_input("ความยาว L (m)", min_value=0.5, value=1.5, step=0.1, key="f_l")
+        f_h = st.number_input("ความหนา H (m)", min_value=0.1, value=0.3, step=0.05, key="f_h")
+        f_qa = st.number_input("กำลังแบกทานยอมให้ (kPa)", min_value=10.0, value=150.0, step=10.0, key="f_qa")
+    with col2:
+        f_dl = st.number_input("Axial DL ลงฐานราก (kN)", value=150.0, step=10.0, key="f_dl")
+        f_ll = st.number_input("Axial LL ลงฐานราก (kN)", value=100.0, step=10.0, key="f_ll")
+
+    if st.button("คำนวณฐานราก", type="primary", key="btn_footing"):
+        loads = FootingLoad(axial_load_D=f_dl, axial_load_L=f_ll)
+        design = FootingDesign(width=f_w, length=f_l, thickness=f_h, allowable_bearing_kPa=f_qa)
+        res = design.check_footing(loads)
+        
+        st.markdown("### ผลลัพธ์")
+        if res.is_ok: st.success(f"✅ {res.status}")
+        else: st.error(f"❌ {res.status}")
+        
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Bearing Ratio", f"{res.bearing_ratio:.3f}")
+        c2.metric("1-Way Shear Ratio", f"{res.shear_1way_ratio:.3f}")
+        c3.metric("Punching Shear Ratio", f"{res.shear_2way_ratio:.3f}")
+        
+        st.markdown(f'<div class="report-box">{format_footing_report(res, f_w, f_l, f_h)}</div>', unsafe_allow_html=True)

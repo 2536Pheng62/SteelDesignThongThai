@@ -1,1 +1,3 @@
-numpy\nreportlab\nopenpyxl
+numpy
+reportlab
+openpyxl

@@ -1,0 +1,6 @@
+C:\Code_design\Purlin_Disign\pdf_service\obj\Release\net10.0\PurlinPdfService.csproj.AssemblyReference.cache
+C:\Code_design\Purlin_Disign\pdf_service\obj\Release\net10.0\PurlinPdfService.GeneratedMSBuildEditorConfig.editorconfig
+C:\Code_design\Purlin_Disign\pdf_service\obj\Release\net10.0\PurlinPdfService.AssemblyInfoInputs.cache
+C:\Code_design\Purlin_Disign\pdf_service\obj\Release\net10.0\PurlinPdfService.AssemblyInfo.cs
+C:\Code_design\Purlin_Disign\pdf_service\obj\Release\net10.0\PurlinPdfService.csproj.CoreCompileInputs.cache
+C:\Code_design\Purlin_Disign\pdf_service\obj\Release\net10.0\PurlinPdfService.sourcelink.json

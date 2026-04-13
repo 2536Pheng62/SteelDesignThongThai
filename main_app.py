@@ -14,15 +14,18 @@ from typing import Dict, Optional
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# Report Generator (PDF)
+# Report Generator (PDF + Excel)
 try:
     from report_generator import (
-        generate_beam_report, generate_column_report,
+        generate_beam_report, generate_column_report, generate_purlin_report,
+        export_purlin_to_excel,
         generate_combined_report, ProjectInfo,
+        EXCELPY_AVAILABLE,
     )
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
+    EXCELPY_AVAILABLE = False
 
 # Import our modules
 from steel_sections import (
@@ -40,6 +43,8 @@ from connection_design import (
     format_bolted_report, format_welded_report
 )
 from baseplate_design import BasePlateDesign, BasePlateLoad, format_baseplate_report
+from truss_design import TrussDesign, TrussLoad, format_truss_report
+from footing_design import FootingDesign, FootingLoad, format_footing_report
 
 
 # ============================================================================
@@ -86,6 +91,8 @@ class SteelStructureDesignApp:
         self.create_column_tab()
         self.create_connection_tab()
         self.create_baseplate_tab()
+        self.create_truss_tab()
+        self.create_footing_tab()
         
         # Status bar
         self.status_var = tk.StringVar()
@@ -203,9 +210,13 @@ class SteelStructureDesignApp:
         # Buttons
         button_frame = ttk.Frame(scrollable_frame)
         button_frame.grid(row=1, column=0, padx=10, pady=10)
-        
+
         ttk.Button(button_frame, text="คำนวณ (Calculate)", command=self.calculate_purlin).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="ค้นหาหน้าตัดประหยัดสุด", command=self.find_purlin_section).pack(side=tk.LEFT, padx=5)
+        if REPORTLAB_AVAILABLE:
+            ttk.Button(button_frame, text="Export PDF รายการคำนวณ", command=self.export_purlin_pdf).pack(side=tk.LEFT, padx=5)
+        if EXCELPY_AVAILABLE:
+            ttk.Button(button_frame, text="Export Excel", command=self.export_purlin_excel).pack(side=tk.LEFT, padx=5)
         
         # Output frame
         output_frame = ttk.LabelFrame(scrollable_frame, text="ผลลัพธ์ - Results")
@@ -255,10 +266,17 @@ class SteelStructureDesignApp:
             )
             results = design.run_check()
             report = format_purlin_report(design, results)
-            
+
             self.purlin_results_text.delete(1.0, tk.END)
             self.purlin_results_text.insert(tk.END, report)
-            
+
+            # Store for PDF/Excel export
+            self._purlin_result = results
+            self._purlin_section_name = inputs['section_name']
+            self._purlin_span = inputs['purlin_span']
+            self._purlin_spacing = inputs['purlin_spacing']
+            self._purlin_slope = inputs['roof_slope_degree']
+
             status = "ผ่าน" if results['is_ok'] else "ไม่ผ่าน"
             self.status_var.set(f"Purlin: {status} - {inputs['section_name']}")
             
@@ -312,6 +330,14 @@ class SteelStructureDesignApp:
                     self.purlin_results_text.delete(1.0, tk.END)
                     self.purlin_results_text.insert(tk.END, report)
                     self.purlin_section_var.set(found)
+
+                    # Store for PDF/Excel export
+                    self._purlin_result = results
+                    self._purlin_section_name = found
+                    self._purlin_span = inputs['purlin_span']
+                    self._purlin_spacing = inputs['purlin_spacing']
+                    self._purlin_slope = inputs['roof_slope_degree']
+
                     self.status_var.set(f"พบหน้าตัดประหยัดสุด: {found}")
                     break
                 else:
@@ -352,6 +378,12 @@ class SteelStructureDesignApp:
         )
         row += 1
         
+        self.beam_method_var = tk.StringVar(value="ASD")
+        ttk.Label(input_frame, text="วิธีการออกแบบ:").grid(row=row, column=0, sticky=tk.W, padx=5, pady=2)
+        method_combo = ttk.Combobox(input_frame, textvariable=self.beam_method_var, values=["ASD", "LRFD"], state="readonly")
+        method_combo.grid(row=row, column=1, sticky=tk.EW, padx=5, pady=2)
+        row += 1
+
         self.beam_span_entry = self.create_entry_field(input_frame, "ช่วงคาน (m):", row, "6.0")
         row += 1
         
@@ -442,6 +474,7 @@ class SteelStructureDesignApp:
             
             design = BeamDesign(
                 section=section, span=span,
+                method=self.beam_method_var.get(),
                 is_cantilever=is_cantilever,
                 lateral_bracing=bracing,
                 deflection_type=defl_type
@@ -493,6 +526,7 @@ class SteelStructureDesignApp:
                 
                 design = BeamDesign(
                     section=section, span=span,
+                    method=self.beam_method_var.get(),
                     is_cantilever=is_cantilever,
                     lateral_bracing=bracing,
                     deflection_type=defl_type
@@ -546,6 +580,12 @@ class SteelStructureDesignApp:
         )
         row += 1
         
+        self.column_method_var = tk.StringVar(value="ASD")
+        ttk.Label(input_frame, text="วิธีการออกแบบ:").grid(row=row, column=0, sticky=tk.W, padx=5, pady=2)
+        col_method_combo = ttk.Combobox(input_frame, textvariable=self.column_method_var, values=["ASD", "LRFD"], state="readonly")
+        col_method_combo.grid(row=row, column=1, sticky=tk.EW, padx=5, pady=2)
+        row += 1
+
         self.column_height_entry = self.create_entry_field(input_frame, "ความสูงเสา (m):", row, "4.0")
         row += 1
         
@@ -631,7 +671,11 @@ class SteelStructureDesignApp:
                 moment_y_W=self.get_float_from_entry(self.column_my_wl_entry, "My WL"),
             )
             
-            design = ColumnDesign(section=section, height=height, Kx=Kx, Ky=Ky)
+            design = ColumnDesign(
+                section=section, height=height,
+                method=self.column_method_var.get(),
+                Kx=Kx, Ky=Ky
+            )
             result = design.check_combined_loading(loads)
             result.Fy = section.Fy
 
@@ -681,7 +725,11 @@ class SteelStructureDesignApp:
                 self.column_results_text.insert(tk.END, f"ตรวจสอบ: {section_name}...")
                 self.master.update_idletasks()
                 
-                design = ColumnDesign(section=section, height=height, Kx=Kx, Ky=Ky)
+                design = ColumnDesign(
+                section=section, height=height,
+                method=self.column_method_var.get(),
+                Kx=Kx, Ky=Ky
+            )
                 result = design.check_combined_loading(loads)
                 
                 if result.is_ok:
@@ -800,6 +848,66 @@ class SteelStructureDesignApp:
             generate_column_report(result, self._column_section_name,
                                     self._column_height, proj, path)
             messagebox.showinfo("สำเร็จ", f"บันทึก PDF เรียบร้อย\n{path}")
+        except Exception as e:
+            messagebox.showerror("ข้อผิดพลาด", str(e))
+
+    def export_purlin_pdf(self):
+        """Export purlin design to PDF."""
+        if not REPORTLAB_AVAILABLE:
+            messagebox.showerror("ข้อผิดพลาด", "reportlab ไม่ได้ติดตั้ง")
+            return
+        result = getattr(self, "_purlin_result", None)
+        if result is None:
+            messagebox.showwarning("คำเตือน", "กรุณาคำนวณแปก่อน แล้วค่อย Export PDF")
+            return
+        proj = self._collect_project_info()
+        if proj is None:
+            return
+        path = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF files", "*.pdf")],
+            initialfile=f"purlin_{self._purlin_section_name}_{self._purlin_span}m.pdf",
+            title="บันทึกรายการคำนวณแป",
+        )
+        if not path:
+            return
+        try:
+            generate_purlin_report(
+                result, self._purlin_section_name,
+                self._purlin_span, self._purlin_spacing,
+                self._purlin_slope, proj, path
+            )
+            messagebox.showinfo("สำเร็จ", f"บันทึก PDF เรียบร้อย\n{path}")
+        except Exception as e:
+            messagebox.showerror("ข้อผิดพลาด", str(e))
+
+    def export_purlin_excel(self):
+        """Export purlin design to Excel."""
+        if not EXCELPY_AVAILABLE:
+            messagebox.showerror("ข้อผิดพลาด", "openpyxl ไม่ได้ติดตั้ง")
+            return
+        result = getattr(self, "_purlin_result", None)
+        if result is None:
+            messagebox.showwarning("คำเตือน", "กรุณาคำนวณแปก่อน แล้วค่อย Export Excel")
+            return
+        proj = self._collect_project_info()
+        if proj is None:
+            return
+        path = filedialog.asksaveasfilename(
+            defaultextension=".xlsx",
+            filetypes=[("Excel files", "*.xlsx")],
+            initialfile=f"purlin_{self._purlin_section_name}_{self._purlin_span}m.xlsx",
+            title="บันทึกข้อมูลการคำนวณแป (Excel)",
+        )
+        if not path:
+            return
+        try:
+            export_purlin_to_excel(
+                result, self._purlin_section_name,
+                self._purlin_span, self._purlin_spacing,
+                self._purlin_slope, path, proj
+            )
+            messagebox.showinfo("สำเร็จ", f"บันทึก Excel เรียบร้อย\n{path}")
         except Exception as e:
             messagebox.showerror("ข้อผิดพลาด", str(e))
 
@@ -1060,6 +1168,87 @@ class SteelStructureDesignApp:
             
         except Exception as e:
             messagebox.showerror("ข้อผิดพลาด", str(e))
+
+    # ========================================================================
+    # TRUSS TAB
+    # ========================================================================
+    def create_truss_tab(self):
+        self.truss_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.truss_tab, text='ออกแบบโครงถัก (Truss)')
+        
+        input_frame = ttk.LabelFrame(self.truss_tab, text="ข้อมูลนำเข้า - Truss Design")
+        input_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        row = 0
+        self.truss_section_combo = self.create_combo_box(input_frame, "หน้าตัดเหล็ก:", row, list(EQUAL_ANGLES.keys()) + list(H_BEAMS.keys()), "L50x50x4")
+        row += 1
+        
+        self.truss_method_var = tk.StringVar(value="LRFD")
+        ttk.Label(input_frame, text="วิธีการออกแบบ:").grid(row=row, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Combobox(input_frame, textvariable=self.truss_method_var, values=["ASD", "LRFD"], state="readonly").grid(row=row, column=1, sticky=tk.EW, padx=5, pady=2)
+        row += 1
+        
+        self.truss_length_entry = self.create_entry_field(input_frame, "ความยาวชิ้นส่วน (m):", row, "3.0")
+        row += 1
+        self.truss_dl_entry = self.create_entry_field(input_frame, "แรง D (kN):", row, "20.0")
+        row += 1
+        self.truss_ll_entry = self.create_entry_field(input_frame, "แรง L (kN):", row, "10.0")
+        row += 1
+        
+        ttk.Button(self.truss_tab, text="คำนวณ (Calculate)", command=self.calculate_truss).pack(pady=5)
+        
+        self.truss_results_text = tk.Text(self.truss_tab, height=15, font=('Consolas', 11))
+        self.truss_results_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+    def calculate_truss(self):
+        try:
+            sname = self.truss_section_combo.get()
+            sec = EQUAL_ANGLES.get(sname) or H_BEAMS.get(sname)
+            loads = TrussLoad(force_D=float(self.truss_dl_entry.get()), force_L=float(self.truss_ll_entry.get()))
+            design = TrussDesign(section=sec, length=float(self.truss_length_entry.get()), method=self.truss_method_var.get())
+            result = design.check_member(loads)
+            report = format_truss_report(result, sname, float(self.truss_length_entry.get()))
+            self.truss_results_text.delete(1.0, tk.END)
+            self.truss_results_text.insert(tk.END, report)
+        except Exception as e: messagebox.showerror("Error", str(e))
+
+    # ========================================================================
+    # FOOTING TAB
+    # ========================================================================
+    def create_footing_tab(self):
+        self.footing_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.footing_tab, text='ฐานราก (Footing)')
+        
+        input_frame = ttk.LabelFrame(self.footing_tab, text="ข้อมูลนำเข้า - Footing")
+        input_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        row = 0
+        self.f_width_entry = self.create_entry_field(input_frame, "ความกว้าง B (m):", row, "1.5")
+        row += 1
+        self.f_length_entry = self.create_entry_field(input_frame, "ความยาว L (m):", row, "1.5")
+        row += 1
+        self.f_thick_entry = self.create_entry_field(input_frame, "ความหนา H (m):", row, "0.3")
+        row += 1
+        self.f_qa_entry = self.create_entry_field(input_frame, "Bearing (kPa):", row, "150.0")
+        row += 1
+        self.f_dl_entry = self.create_entry_field(input_frame, "P Dead (kN):", row, "100.0")
+        row += 1
+        self.f_ll_entry = self.create_entry_field(input_frame, "P Live (kN):", row, "50.0")
+        row += 1
+        
+        ttk.Button(self.footing_tab, text="คำนวณ (Calculate)", command=self.calculate_footing).pack(pady=5)
+        self.footing_results_text = tk.Text(self.footing_tab, height=15, font=('Consolas', 11))
+        self.footing_results_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+    def calculate_footing(self):
+        try:
+            fd = FootingDesign(width=float(self.f_width_entry.get()), length=float(self.f_length_entry.get()), thickness=float(self.f_thick_entry.get()), allowable_bearing_kPa=float(self.f_qa_entry.get()))
+            loads = FootingLoad(axial_load_D=float(self.f_dl_entry.get()), axial_load_L=float(self.f_ll_entry.get()))
+            result = fd.check_footing(loads)
+            report = format_footing_report(result, fd.B, fd.L, fd.H)
+            self.footing_results_text.delete(1.0, tk.END)
+            self.footing_results_text.insert(tk.END, report)
+        except Exception as e: messagebox.showerror("Error", str(e))
 
 
 # ============================================================================

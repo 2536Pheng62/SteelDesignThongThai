@@ -15,7 +15,7 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-# Mock only GUI/plotting — NOT reportlab (we need it for PDF)
+# Mock only GUI/plotting
 _GUI_MOCKS = [
     'tkinter', 'tkinter.ttk', 'tkinter.messagebox', 'tkinter.filedialog',
     'matplotlib', 'matplotlib.figure', 'matplotlib.backends',
@@ -27,15 +27,18 @@ for _m in _GUI_MOCKS:
 
 from report_generator import (
     generate_beam_report, generate_column_report,
+    generate_truss_report, generate_footing_report,
     generate_combined_report, ProjectInfo,
 )
 from beam_design import BeamDesign, BeamLoad
 from column_design import ColumnDesign, ColumnLoad
-from steel_sections import H_BEAMS, I_BEAMS, STEEL_PIPES, C_CHANNELS, RHS_SECTIONS
+from truss_design import TrussDesign, TrussLoad
+from footing_design import FootingDesign, FootingLoad
+from steel_sections import H_BEAMS, I_BEAMS, STEEL_PIPES, C_CHANNELS, RHS_SECTIONS, EQUAL_ANGLES
 
 
 def _get_section(name: str):
-    for db in (H_BEAMS, I_BEAMS, STEEL_PIPES, C_CHANNELS, RHS_SECTIONS):
+    for db in (H_BEAMS, I_BEAMS, STEEL_PIPES, C_CHANNELS, RHS_SECTIONS, EQUAL_ANGLES):
         if name in db:
             return db[name]
     raise ValueError(f"ไม่พบหน้าตัด: {name}")
@@ -53,7 +56,6 @@ def _project_from_dict(d: dict) -> ProjectInfo:
 
 
 def handler(event, context):
-    """Netlify function handler."""
     try:
         body = json.loads(event.get("body") or "{}")
         module  = body.get("module", "")
@@ -66,55 +68,49 @@ def handler(event, context):
             section_name = data.get("section_name", "")
             span         = float(data.get("span", 6.0))
             sec          = _get_section(section_name)
-
             loads = BeamLoad(
                 dead_load=float(data.get("dead_load", 0)),
                 live_load=float(data.get("live_load", 0)),
-                wind_load=float(data.get("wind_load", 0)),
-                point_load_D=float(data.get("point_load_D", 0)),
                 point_load_L=float(data.get("point_load_L", 0)),
             )
-            bd = BeamDesign(
-                section=sec, span=span,
-                lateral_bracing=data.get("lateral_bracing", "continuous"),
-                deflection_type=data.get("deflection_type", "beam_live_load"),
-            )
+            bd = BeamDesign(section=sec, span=span, method=data.get("method", "ASD"))
             result = bd.check_beam(loads)
-            result.details["properties"]["Ix"] = sec.Ix
+            result.details["properties"] = {"Fy": sec.Fy, "Sx": sec.Sx, "Ix": sec.Ix}
             pdf_bytes = generate_beam_report(result, section_name, span, project)
 
         elif module == "column":
             section_name = data.get("section_name", "")
             height       = float(data.get("height", 4.0))
             sec          = _get_section(section_name)
-
             loads = ColumnLoad(
                 axial_load_D=float(data.get("axial_load_D", 0)),
                 axial_load_L=float(data.get("axial_load_L", 0)),
-                axial_load_W=float(data.get("axial_load_W", 0)),
-                moment_x_D=float(data.get("moment_x_D", 0)),
-                moment_x_L=float(data.get("moment_x_L", 0)),
-                moment_x_W=float(data.get("moment_x_W", 0)),
-                moment_y_D=float(data.get("moment_y_D", 0)),
-                moment_y_L=float(data.get("moment_y_L", 0)),
-                moment_y_W=float(data.get("moment_y_W", 0)),
             )
-            cd = ColumnDesign(
-                section=sec, height=height,
-                Kx=float(data.get("Kx", 1.0)),
-                Ky=float(data.get("Ky", 1.0)),
-            )
+            cd = ColumnDesign(section=sec, height=height, method=data.get("method", "ASD"))
             result = cd.check_combined_loading(loads)
             result.Fy = sec.Fy
+            result.details["properties"] = {"A": sec.A, "rx": sec.rx, "ry": sec.ry}
             pdf_bytes = generate_column_report(result, section_name, height, project)
 
-        else:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": f"module '{module}' ไม่รองรับ PDF export"}),
-            }
+        elif module == "truss":
+            section_name = data.get("section_name", "")
+            length       = float(data.get("length", 3.0))
+            sec          = _get_section(section_name)
+            loads        = TrussLoad(force_D=float(data.get("force_D", 0)), force_L=float(data.get("force_L", 0)))
+            td = TrussDesign(section=sec, length=length, method=data.get("method", "ASD"))
+            result = td.check_member(loads)
+            pdf_bytes = generate_truss_report(result, section_name, length, project)
 
-        # Return PDF as base64 (Netlify functions require base64 for binary)
+        elif module == "footing":
+            B, L, H = float(data.get("width", 1.5)), float(data.get("length", 1.5)), float(data.get("thickness", 0.3))
+            loads = FootingLoad(axial_load_D=float(data.get("axial_load_D", 0)), axial_load_L=float(data.get("axial_load_L", 0)))
+            fd = FootingDesign(width=B, length=L, thickness=H, allowable_bearing_kPa=float(data.get("allowable_bearing_kPa", 150)))
+            result = fd.check_footing(loads)
+            pdf_bytes = generate_footing_report(result, B, L, H, project)
+
+        else:
+            return {"statusCode": 400, "body": json.dumps({"error": f"module '{module}' ไม่รองรับ PDF export"})}
+
         return {
             "statusCode": 200,
             "headers": {
@@ -126,7 +122,4 @@ def handler(event, context):
         }
 
     except Exception as exc:
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": str(exc)}),
-        }
+        return {"statusCode": 500, "body": json.dumps({"error": str(exc)})}

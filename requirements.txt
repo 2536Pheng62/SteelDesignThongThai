@@ -1,8 +1,8 @@
 # Steel Structure Design Application - Requirements
 # Install with: pip install -r requirements.txt
 
-# GUI (included in Python standard library)
-# tkinter
+# Streamlit for Web UI
+streamlit>=1.30.0
 
 # Plotting
 matplotlib>=3.5.0

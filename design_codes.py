@@ -16,6 +16,7 @@ G_STEEL = 7.9e4   # MPa
 PHI_b = 0.90   # Bending
 PHI_v = 1.00   # Shear  (AISC 360-16 §G2.1, Cv1=1 most rolled I-shapes)
 PHI_c = 0.90   # Compression
+PHI_t = 0.90   # Tension (Yielding)
 
 
 # ============================================================================

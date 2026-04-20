@@ -15,3 +15,6 @@ openpyxl>=3.0.0
 
 # Diagram Generation (for visualization in PDF)
 numpy>=1.21.0
+
+# Data handling (optional enhancements)
+# pandas>=1.3.0

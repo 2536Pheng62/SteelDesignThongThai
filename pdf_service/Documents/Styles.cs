@@ -8,18 +8,18 @@ namespace PurlinPdfService.Documents;
 internal static class Styles
 {
     // ── Colors ────────────────────────────────────────────────────────────────
-    public static readonly Color Navy    = Color.FromHex("#0d1b2a");
-    public static readonly Color Blue    = Color.FromHex("#1b4f72");
-    public static readonly Color Accent  = Color.FromHex("#2e86ab");
-    public static readonly Color Light   = Color.FromHex("#f0f4f8");
-    public static readonly Color PassGrn = Color.FromHex("#1a7a4a");
-    public static readonly Color PassBg  = Color.FromHex("#d4f5e4");
-    public static readonly Color FailRed = Color.FromHex("#c0392b");
-    public static readonly Color FailBg  = Color.FromHex("#fde8e8");
-    public static readonly Color WarnYlw = Color.FromHex("#d68910");
-    public static readonly Color WarnBg  = Color.FromHex("#fff3cd");
-    public static readonly Color RowAlt  = Color.FromHex("#f7fafc");
-    public static readonly Color Border  = Color.FromHex("#dde3ec");
+    public static readonly string Navy    = "#0d1b2a";
+    public static readonly string Blue    = "#1b4f72";
+    public static readonly string Accent  = "#2e86ab";
+    public static readonly string Light   = "#f0f4f8";
+    public static readonly string PassGrn = "#1a7a4a";
+    public static readonly string PassBg  = "#d4f5e4";
+    public static readonly string FailRed = "#c0392b";
+    public static readonly string FailBg  = "#fde8e8";
+    public static readonly string WarnYlw = "#d68910";
+    public static readonly string WarnBg  = "#fff3cd";
+    public static readonly string RowAlt  = "#f7fafc";
+    public static readonly string Border  = "#dde3ec";
 
     // ── Font ──────────────────────────────────────────────────────────────────
     public const string Font     = "Arial Unicode MS";
@@ -37,20 +37,9 @@ internal static class Styles
 
     // ── Fluent helpers ────────────────────────────────────────────────────────
 
-    /// <summary>Allows conditional configuration on TextBlockDescriptor.</summary>
-    public static TextBlockDescriptor With(this TextBlockDescriptor t, Action<TextBlockDescriptor> action)
-    {
-        action(t);
-        return t;
-    }
-
-    /// <summary>Thai-capable text style for IContainer.</summary>
-    public static void ThaiText(this IContainer c, string text, float? size = null, bool bold = false, Color? color = null)
-    {
-        var t = c.Text(text).FontFamily(Font).FontSize(size ?? FontBase);
-        if (bold) t.Bold();
-        if (color.HasValue) t.FontColor(color.Value);
-    }
+    /// <summary>Thai-capable text style.</summary>
+    public static TextDescriptor Thai(this TextDescriptor t) =>
+        t.FontFamily(Font).FontSize(FontBase);
 
     public static IContainer SectionBanner(this IContainer c, string title)
     {
@@ -63,15 +52,14 @@ internal static class Styles
         });
     }
 
-    public static void PassFailBanner(this IContainer c, bool isOk, string status)
+    public static IContainer PassFailBanner(this IContainer c, bool isOk, string status)
     {
         var bg    = isOk ? PassBg  : FailBg;
         var color = isOk ? PassGrn : FailRed;
         var label = isOk ? $"✓  {status}" : $"✗  {status}";
-
-        c.Background(bg).Border(1).BorderColor(color)
-         .Padding(10).AlignCenter()
-         .Text(label)
-         .FontFamily(Font).FontSize(14).Bold().FontColor(color);
+        return c.Background(bg).Border(1).BorderColor(color)
+                .Padding(10).AlignCenter()
+                .Text(label)
+                .FontFamily(Font).FontSize(14).Bold().FontColor(color);
     }
 }

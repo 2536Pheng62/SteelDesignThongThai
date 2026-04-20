@@ -25,9 +25,7 @@ internal class ColumnDocument(InputModel model) : IDocument
         container.Page(page =>
         {
             page.Size(PageSizes.A4);
-            page.MarginTop(20);
-            page.MarginBottom(18);
-            page.MarginHorizontal(20);
+            page.MarginTop(20).MarginBottom(18).MarginHorizontal(20);
             page.DefaultTextStyle(t => t.FontFamily(Font).FontSize(FontBase));
 
             page.Header().Element(ComposeHeader);
@@ -46,7 +44,7 @@ internal class ColumnDocument(InputModel model) : IDocument
 
             row.ConstantItem(180).AlignRight().Text(
                 $"{_proj.Standard}  |  {_proj.Method}")
-                .FontFamily(Font).FontSize(FontSm).FontColor(Color.FromHex("#a8d8ea"));
+                .FontFamily(Font).FontSize(FontSm).FontColor("#a8d8ea");
         });
     }
 
@@ -76,23 +74,23 @@ internal class ColumnDocument(InputModel model) : IDocument
 
             CoverBlock(col.Item());
 
-            col.Item().SectionBanner("1.  คุณสมบัติหน้าตัด (Section Properties)");
+            SectionBanner(col.Item(), "1.  คุณสมบัติหน้าตัด (Section Properties)");
             SectionPropsTable(col.Item());
 
-            col.Item().SectionBanner("2.  การตรวจสอบความชะลูด (Slenderness Check)");
+            SectionBanner(col.Item(), "2.  การตรวจสอบความชะลูด (Slenderness Check)");
             SlendernessTable(col.Item());
 
-            col.Item().SectionBanner("3.  หน่วยแรงอัดที่ยอมให้ (Allowable Compressive Stress)");
+            SectionBanner(col.Item(), "3.  หน่วยแรงอัดที่ยอมให้ (Allowable Compressive Stress)");
             CompressiveStressTable(col.Item());
 
-            col.Item().SectionBanner("4.  การตรวจสอบแรงรวม (Combined Loading — Interaction)");
+            SectionBanner(col.Item(), "4.  การตรวจสอบแรงรวม (Combined Loading — Interaction)");
             CombinedTable(col.Item());
 
-            col.Item().SectionBanner("5.  สรุปผลการออกแบบ (Design Summary)");
+            SectionBanner(col.Item(), "5.  สรุปผลการออกแบบ (Design Summary)");
             SummaryTable(col.Item());
 
             col.Item().Height(8);
-            col.Item().PassFailBanner(_data.IsOk, _data.Status);
+            PassFailBanner(col.Item(), _data.IsOk, _data.Status);
         });
     }
 
@@ -220,14 +218,14 @@ internal class ColumnDocument(InputModel model) : IDocument
                 var  bg  = ok ? PassBg  : FailBg;
                 var  clr = ok ? PassGrn : FailRed;
 
-                void SC(string t, bool right = false, Color? color = null, bool bold = false) =>
+                void SC(string t, bool right = false, string? color = null, bool bold = false) =>
                     table.Cell().Background(bg).Border(0.3f).BorderColor(Border).Padding(3)
                          .Text(t).FontFamily(Font).FontSize(FontSm)
                          .With(tx =>
                          {
                              if (right) tx.AlignRight();
                              if (bold)  tx.Bold();
-                             if (color.HasValue) tx.FontColor(color.Value);
+                             if (color != null) tx.FontColor(color);
                          });
 
                 SC(label);
@@ -253,7 +251,7 @@ internal class ColumnDocument(InputModel model) : IDocument
 
             for (int i = 0; i < items.Length; i += 2)
             {
-                Color bg = i % 4 == 0 ? Colors.White : RowAlt;
+                string bg = i % 4 == 0 ? Colors.White : RowAlt;
                 (string k1, string v1) = items[i];
                 (string k2, string v2) = i + 1 < items.Length ? items[i + 1] : ("", "");
 

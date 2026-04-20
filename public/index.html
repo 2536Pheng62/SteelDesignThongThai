@@ -65,7 +65,6 @@
             <button class="tab" onclick="showTab('bolted')">🔩 สลักเกลียว</button>
             <button class="tab" onclick="showTab('welded')">🔥 รอยเชื่อม</button>
             <button class="tab" onclick="showTab('baseplate')">🔲 Base Plate</button>
-            <button class="tab" onclick="showTab('footing')">🦶 ฐานราก</button>
             <button class="tab" onclick="showTab('truss')">🔺 Truss</button>
             <button class="tab" onclick="showTab('bracing')">⚡ Bracing</button>
         </div>
@@ -100,7 +99,6 @@
                 <div>
                     <h3>📥 เรขาคณิต</h3>
                     <div class="form-group"><label>หน้าตัดเหล็ก</label><select id="b_section"></select></div>
-                    <div class="form-group"><label>วิธีการออกแบบ</label><select id="b_method"><option value="ASD">ASD (วสท.)</option><option value="LRFD" selected>LRFD (วสท.)</option></select></div>
                     <div class="form-group"><label>ช่วงคาน (m)</label><input type="number" id="b_span" value="6.0" step="0.5"></div>
                     <div class="form-group"><label>ประเภทคาน</label><select id="b_type"><option value="simple">Simply Supported</option><option value="cantilever">Cantilever</option></select></div>
                 </div>
@@ -123,7 +121,6 @@
                 <div>
                     <h3>📥 เรขาคณิต</h3>
                     <div class="form-group"><label>หน้าตัดเหล็ก</label><select id="c_section"></select></div>
-                    <div class="form-group"><label>วิธีการออกแบบ</label><select id="c_method"><option value="ASD">ASD (วสท.)</option><option value="LRFD" selected>LRFD (วสท.)</option></select></div>
                     <div class="form-group"><label>ความสูงเสา (m)</label><input type="number" id="c_height" value="4.0" step="0.5"></div>
                     <div class="form-group"><label>Kx</label><input type="number" id="c_kx" value="1.0" step="0.1"></div>
                     <div class="form-group"><label>Ky</label><input type="number" id="c_ky" value="1.0" step="0.1"></div>
@@ -208,28 +205,6 @@
             <div id="bp_result" class="result-box"></div>
         </div>
 
-        <!-- FOOTING TAB -->
-        <div id="footing" class="tab-content">
-            <h2>🦶 ออกแบบฐานรากแผ่ (Isolated Footing)</h2>
-            <div class="info-box"><strong>มาตรฐาน:</strong> ข้อกำหนดทั่วไป (ASD Soil / LRFD Concrete)</div>
-            <div class="form-grid">
-                <div>
-                    <h3>📥 เรขาคณิตฐานราก</h3>
-                    <div class="form-group"><label>ความกว้าง B (m)</label><input type="number" id="f_width" value="1.5" step="0.1"></div>
-                    <div class="form-group"><label>ความยาว L (m)</label><input type="number" id="f_length" value="1.5" step="0.1"></div>
-                    <div class="form-group"><label>ความหนา H (m)</label><input type="number" id="f_thickness" value="0.3" step="0.05"></div>
-                </div>
-                <div>
-                    <h3>⚖️ แรงดันดินและน้ำหนัก</h3>
-                    <div class="form-group"><label>กำลังแบกทานยอมให้ (kPa)</label><input type="number" id="f_qa" value="150" step="10"></div>
-                    <div class="form-group"><label>น้ำหนักบรรทุกคงที่ D (kN)</label><input type="number" id="f_dl" value="150" step="10"></div>
-                    <div class="form-group"><label>น้ำหนักบรรทุกจร L (kN)</label><input type="number" id="f_ll" value="100" step="10"></div>
-                </div>
-            </div>
-            <button class="btn-calculate" onclick="calculateFooting()">🔢 คำนวณฐานราก</button>
-            <div id="f_result" class="result-box"></div>
-        </div>
-
         <!-- TRUSS TAB -->
         <div id="truss" class="tab-content">
             <h2>🔺 ออกแบบชิ้นส่วนโครงถัก (LRFD)</h2>
@@ -283,68 +258,58 @@
     </div>
 
     <script>
-        // API Configuration
-        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:8888/.netlify/functions/calculate'
-            : '/.netlify/functions/calculate';
-
-        async function callApi(module, inputs) {
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ module, inputs })
-                });
-                if (!response.ok) throw new Error(`API error: ${response.statusText}`);
-                return await response.json();
-            } catch (err) {
-                console.error(err);
-                alert("การคำนวณผิดพลาด: " + err.message);
-                return null;
+        // Steel Section Database
+        const sections = {
+            C_CHANNELS: {
+                "C100x50x20x2.3": { weight: 3.67, Fy: 245, Fu: 290, A: 467, d: 100, tw: 2.3, bf: 50, tf: 2.3, Ix: 1.08e6, Sx: 2.15e4, rx: 48, Iy: 0.147e6, Sy: 4.4e3, ry: 17.7 },
+                "C150x65x20x4.0": { weight: 8.78, Fy: 245, Fu: 290, A: 1118, d: 150, tw: 4, bf: 65, tf: 4, Ix: 5.68e6, Sx: 7.58e4, rx: 71.3, Iy: 0.477e6, Sy: 10.7e3, ry: 20.7 },
+                "C200x75x25x4.5": { weight: 12.9, Fy: 345, Fu: 400, A: 1641, d: 200, tw: 4.5, bf: 75, tf: 4.5, Ix: 1.45e7, Sx: 1.45e5, rx: 94, Iy: 0.908e6, Sy: 17e3, ry: 23.5 }
+            },
+            H_BEAMS: {
+                "H150x150x7x10": { weight: 31.9, Fy: 245, Fu: 400, A: 4055, d: 150, tw: 7, bf: 150, tf: 10, Ix: 1.66e7, Sx: 2.21e5, rx: 64, Iy: 5.63e6, Sy: 7.51e4, ry: 37.3, Zx: 2.48e5 },
+                "H200x200x8x12": { weight: 50.5, Fy: 245, Fu: 400, A: 6428, d: 200, tw: 8, bf: 200, tf: 12, Ix: 4.77e7, Sx: 4.77e5, rx: 86.2, Iy: 1.60e7, Sy: 1.60e5, ry: 49.9, Zx: 5.36e5 },
+                "H250x250x9x14": { weight: 72.4, Fy: 245, Fu: 400, A: 9218, d: 250, tw: 9, bf: 250, tf: 14, Ix: 1.08e8, Sx: 8.67e5, rx: 108.4, Iy: 3.65e7, Sy: 2.92e5, ry: 62.9, Zx: 9.74e5 },
+                "H300x300x10x15": { weight: 94.5, Fy: 245, Fu: 400, A: 12020, d: 300, tw: 10, bf: 300, tf: 15, Ix: 2.04e8, Sx: 1.36e6, rx: 130.3, Iy: 6.75e7, Sy: 4.50e5, ry: 74.9, Zx: 1.53e6 }
+            },
+            I_BEAMS: {
+                "I150x100x5x7": { weight: 18.6, Fy: 245, A: 2370, d: 150, tw: 5, bf: 100, tf: 7, Ix: 8.35e6, Sx: 1.11e5, rx: 59.3, Iy: 1.34e6, Sy: 2.68e4, ry: 23.8 },
+                "I200x100x5.5x8": { weight: 24.2, Fy: 245, A: 3082, d: 200, tw: 5.5, bf: 100, tf: 8, Ix: 1.84e7, Sx: 1.84e5, rx: 77.3, Iy: 1.55e6, Sy: 3.10e4, ry: 22.4 },
+                "I250x125x6x9": { weight: 34.6, Fy: 245, A: 4410, d: 250, tw: 6, bf: 125, tf: 9, Ix: 4.05e7, Sx: 3.24e5, rx: 95.8, Iy: 3.13e6, Sy: 5.01e4, ry: 26.6 }
+            },
+            ANGLES: {
+                "L65x65x6": { weight: 5.82, Fy: 245, A: 741, d: 65, tw: 6, bf: 65, tf: 6, Ix: 2.38e5, Sx: 5.17e3, rx: 17.9, Iy: 2.38e5, Sy: 5.17e3, ry: 17.9 },
+                "L75x75x6": { weight: 6.76, Fy: 245, A: 861, d: 75, tw: 6, bf: 75, tf: 6, Ix: 4.03e5, Sx: 7.56e3, rx: 21.6, Iy: 4.03e5, Sy: 7.56e3, ry: 21.6 },
+                "L90x90x9": { weight: 11.9, Fy: 245, A: 1514, d: 90, tw: 9, bf: 90, tf: 9, Ix: 1.08e6, Sx: 1.66e4, rx: 26.7, Iy: 1.08e6, Sy: 1.66e4, ry: 26.7 }
+            },
+            PIPES: {
+                "SGP80A(89.1x3.5)": { weight: 7.39, Fy: 245, A: 940, d: 89.1, tw: 3.5, bf: 89.1, tf: 3.5, Ix: 1.08e6, Sx: 2.42e4, rx: 33.9, Iy: 1.08e6, Sy: 2.42e4, ry: 33.9 },
+                "SGP100A(114.3x3.5)": { weight: 9.56, Fy: 245, A: 1216, d: 114.3, tw: 3.5, bf: 114.3, tf: 3.5, Ix: 2.68e6, Sx: 4.68e4, rx: 47, Iy: 2.68e6, Sy: 4.68e4, ry: 47 },
+                "SGP150A(165.2x4.5)": { weight: 17.8, Fy: 245, A: 2268, d: 165.2, tw: 4.5, bf: 165.2, tf: 4.5, Ix: 1.18e7, Sx: 1.43e5, rx: 72.1, Iy: 1.18e7, Sy: 1.43e5, ry: 72.1 }
             }
-        }
-
-        // Steel Section Database (Dynamic from API)
-        let sections = {};
+        };
 
         function getSection(name) {
-            // For older JS functions that still rely on local DB
-            return null; // Will be handled if needed, but we moved to API
+            for(const cat of Object.values(sections)) {
+                if(cat[name]) return cat[name];
+            }
+            return sections.C_CHANNELS["C150x65x20x4.0"];
         }
 
-        async function populateSections() {
-            try {
-                const res = await callApi('sections', {});
-                if (!res) return;
-                
-                const allBeams = [...(res.h_beams || []), ...(res.i_beams || [])];
-                const allSections = [
-                    ...allBeams, 
-                    ...(res.angles || []), 
-                    ...(res.pipes || []), 
-                    ...(res.shs || []), 
-                    ...(res.rhs || []), 
-                    ...(res.c_channels || [])
-                ];
-                
-                ['b_section', 'c_section', 'bp_section', 'tr_section', 'br_section'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if(el) {
-                        el.innerHTML = '';
-                        allSections.forEach(name => el.add(new Option(name, name)));
-                    }
-                });
-                
-                ['p_section'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if(el) {
-                        el.innerHTML = '';
-                        (res.c_channels || []).forEach(name => el.add(new Option(name, name)));
-                    }
-                });
-            } catch(e) {
-                console.error("Failed to load sections from API:", e);
-            }
+        function populateSections() {
+            const allBeams = {...sections.H_BEAMS, ...sections.I_BEAMS};
+            const allSections = {...allBeams, ...sections.ANGLES, ...sections.PIPES};
+            ['b_section', 'c_section', 'bp_section'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) Object.keys(allSections).forEach(name => el.add(new Option(name, name)));
+            });
+            ['p_section'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) Object.keys(sections.C_CHANNELS).forEach(name => el.add(new Option(name, name)));
+            });
+            ['tr_section', 'br_section'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) Object.keys(allSections).forEach(name => el.add(new Option(name, name)));
+            });
         }
 
         function showTab(tabName) {
@@ -411,102 +376,273 @@
         // LRFD CALCULATIONS
         // ============================================================================
 
-        // Helper to render calculation steps from API
-        function renderSteps(steps) {
-            if(!steps) return '';
-            return steps.map(step => `
-                <div class="formula-section">
-                    <h4>${step.title}</h4>
-                    ${step.subtitle ? `<p><i>${step.subtitle}</i></p>` : ''}
-                    <table class="result-table">
-                        <thead><tr><th>ตัวแปร</th><th>คำอธิบาย</th><th>สูตร</th><th>แทนค่า</th><th>ผลลัพธ์</th></tr></thead>
-                        <tbody>
-                            ${step.rows.map(r => `
-                                <tr>
-                                    <td><b>${r.symbol}</b></td>
-                                    <td>${r.desc}</td>
-                                    <td style="font-family: monospace;">${r.formula || ''}</td>
-                                    <td style="color: #FF6B35; font-family: monospace;">${r.substitution || ''}</td>
-                                    <td>
-                                        <b style="${r.is_check ? (r.is_ok ? 'color: green;' : 'color: red;') : ''}">
-                                            ${r.value} ${r.unit || ''}
-                                            ${r.is_check ? (r.is_ok ? ' ✓' : ' ✗') : ''}
-                                        </b>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `).join('');
+        // PURLIN LRFD
+        function calculatePurlinLRFD() {
+            const sec = getSection(document.getElementById('p_section').value);
+            const span = parseFloat(document.getElementById('p_span').value);
+            const spacing = parseFloat(document.getElementById('p_spacing').value);
+            const slope = parseFloat(document.getElementById('p_slope').value);
+            const dl = parseFloat(document.getElementById('p_dl').value);
+            const ll = parseFloat(document.getElementById('p_ll').value);
+
+            // Load per meter width
+            const w_D = dl * spacing;
+            const w_L = ll * spacing;
+
+            // LRFD Load Combinations for moment
+            const Mu_1 = 1.4 * w_D * Math.pow(span, 2) / 8;
+            const Mu_2 = (1.2 * w_D + 1.6 * w_L) * Math.pow(span, 2) / 8;
+            const Mu = Math.max(Mu_1, Mu_2);
+            const controllingCombo = Mu_1 > Mu_2 ? '1.4D' : '1.2D + 1.6L';
+
+            // φMn = φ × Fy × Sx (compact section, fully braced)
+            const phi_b = 0.90;
+            const phiMn = phi_b * sec.Fy * sec.Sx / 1e6; // kN-m
+            const ratio = Mu / phiMn;
+
+            const summaryRows = [
+                ['Method', 'LRFD (φRn ≥ ΣγiQi)'],
+                ['Controlling Combo', controllingCombo],
+                ['φb (Bending)', phi_b],
+                ['Mu (Factored Moment)', Mu.toFixed(3) + ' kN-m'],
+                ['φMn (Design Strength)', phiMn.toFixed(3) + ' kN-m'],
+                ['Mu/φMn', ratio.toFixed(3)]
+            ];
+
+            const loadCombos = [
+                { equation: '1.4D', value: Mu_1, unit: 'kN-m' },
+                { equation: '1.2D + 1.6L', value: Mu_2, unit: 'kN-m' }
+            ];
+
+            const formulaSteps = [
+                {
+                    label: '1. น้ำหนักต่อหน่วย长度 (Service Loads)',
+                    equation: 'w_D = DL × Spacing, w_L = LL × Spacing',
+                    substitution: `w_D = ${dl} × ${spacing} = ${w_D.toFixed(3)} kN/m\nw_L = ${ll} × ${spacing} = ${w_L.toFixed(3)} kN/m`,
+                    result: `w_D = ${w_D.toFixed(3)} kN/m, w_L = ${w_L.toFixed(3)} kN/m`
+                },
+                {
+                    label: '2. LRFD Load Combination 1: 1.4D',
+                    equation: 'Mu_1 = 1.4 × w_D × L² / 8',
+                    substitution: `= 1.4 × ${w_D.toFixed(3)} × ${span}² / 8`,
+                    result: `Mu_1 = ${Mu_1.toFixed(3)} kN-m`
+                },
+                {
+                    label: '3. LRFD Load Combination 2: 1.2D + 1.6L',
+                    equation: 'Mu_2 = (1.2×w_D + 1.6×w_L) × L² / 8',
+                    substitution: `= (1.2×${w_D.toFixed(3)} + 1.6×${w_L.toFixed(3)}) × ${span}² / 8`,
+                    result: `Mu_2 = ${Mu_2.toFixed(3)} kN-m`
+                },
+                {
+                    label: '4. Factored Moment (ใช้ค่ามากสุด)',
+                    equation: 'Mu = max(Mu_1, Mu_2)',
+                    substitution: `= max(${Mu_1.toFixed(3)}, ${Mu_2.toFixed(3)})`,
+                    result: `Mu = ${Mu.toFixed(3)} kN-m (จาก ${controllingCombo})`
+                },
+                {
+                    label: '5. Nominal Moment Capacity (Compact Section)',
+                    equation: 'Mn = Fy × Sx (หรือ Zx ถ้ามี)',
+                    substitution: `= ${sec.Fy} × ${sec.Sx.toLocaleString()} / 1e6`,
+                    result: `Mn = ${(sec.Fy * sec.Sx / 1e6).toFixed(3)} kN-m`
+                },
+                {
+                    label: '6. Design Strength (φMn)',
+                    equation: 'φMn = φb × Mn   (φb = 0.90 per LRFD)',
+                    substitution: `= 0.90 × ${(sec.Fy * sec.Sx / 1e6).toFixed(3)}`,
+                    result: `φMn = ${phiMn.toFixed(3)} kN-m`
+                },
+                {
+                    label: '7. ตรวจสอบ LRFD',
+                    equation: 'Mu / φMn ≤ 1.0  (φRn ≥ ΣγiQi)',
+                    substitution: `= ${Mu.toFixed(3)} / ${phiMn.toFixed(3)}`,
+                    result: `Ratio = ${ratio.toFixed(3)}`,
+                    check: ratio <= 1,
+                    checkText: `Mu/φMn = ${ratio.toFixed(3)} ${ratio <= 1 ? '≤ 1.0 ✓' : '> 1.0 ✗'}`
+                }
+            ];
+
+            showResultWithFormulas('p_result', ratio <= 1, 'Purlin Design (LRFD)', loadCombos, summaryRows, formulaSteps);
         }
 
-        async function calculateBeamLRFD() {
-            const inputs = {
-                section_name: document.getElementById('b_section').value,
-                method: document.getElementById('b_method').value,
-                span: parseFloat(document.getElementById('b_span').value),
-                is_cantilever: document.getElementById('b_type').value === 'cantilever',
-                dead_load: parseFloat(document.getElementById('b_dl').value),
-                live_load: parseFloat(document.getElementById('b_ll').value),
-                point_load_L: parseFloat(document.getElementById('b_point').value)
-            };
-            
-            const div = document.getElementById('b_result');
-            div.innerHTML = '<p>⌛ กำลังคำนวณ...</p>';
-            div.className = 'result-box pass';
-            div.style.display = 'block';
+        // BEAM LRFD
+        function calculateBeamLRFD() {
+            const sec = getSection(document.getElementById('b_section').value);
+            const span = parseFloat(document.getElementById('b_span').value);
+            const dl = parseFloat(document.getElementById('b_dl').value);
+            const ll = parseFloat(document.getElementById('b_ll').value);
+            const point = parseFloat(document.getElementById('b_point').value);
 
-            const res = await callApi('beam', inputs);
-            if(!res) return;
+            // LRFD Load Combinations
+            const wu = 1.2 * dl + 1.6 * ll;
+            const Pu = 1.2 * 0 + 1.6 * point; // Assume point load is LL only
 
-            div.className = `result-box ${res.is_ok ? 'pass' : 'fail'}`;
-            div.innerHTML = `
-                <h3>${res.is_ok ? '✅ ' + res.status : '❌ ' + res.status}</h3>
-                <p><b>Beam Design: ${inputs.section_name} (${inputs.method})</b></p>
-                <div class="info-box">
-                    <p>U.C. ดัด: <b>${res.stress_ratio.toFixed(3)}</b></p>
-                    <p>U.C. เฉือน: <b>${res.shear_ratio.toFixed(3)}</b></p>
-                    <p>การแอ่นตัว: <b>${res.deflection_ratio.toFixed(3)}</b> (L/${Math.round(inputs.span*1000/res.delta_max)})</p>
-                </div>
-                ${renderSteps(res.calc_steps)}
-            `;
+            const Mu_dist = wu * Math.pow(span, 2) / 8;
+            const Mu_point = Pu * span / 4;
+            const Mu = Mu_dist + Mu_point;
+
+            const phi_b = 0.90;
+            const Zx = sec.Zx || sec.Sx * 1.12; // Approximate Zx if not available
+            const phiMn = phi_b * sec.Fy * Zx / 1e6;
+            const ratio = Mu / phiMn;
+
+            const summaryRows = [
+                ['Method', 'LRFD'],
+                ['wu (Factored Load)', wu.toFixed(2) + ' kN/m'],
+                ['φb', phi_b],
+                ['Mu', Mu.toFixed(2) + ' kN-m'],
+                ['φMn', phiMn.toFixed(2) + ' kN-m'],
+                ['Mu/φMn', ratio.toFixed(3)]
+            ];
+
+            const loadCombos = [
+                { equation: 'wu = 1.2DL + 1.6LL', value: wu, unit: 'kN/m' },
+                { equation: 'Mu (dist)', value: Mu_dist, unit: 'kN-m' },
+                { equation: 'Mu (point)', value: Mu_point, unit: 'kN-m' }
+            ];
+
+            const formulaSteps = [
+                {
+                    label: '1. LRFD Factored Load',
+                    equation: 'wu = 1.2 × DL + 1.6 × LL',
+                    substitution: `= 1.2 × ${dl} + 1.6 × ${ll}`,
+                    result: `wu = ${wu.toFixed(2)} kN/m`
+                },
+                {
+                    label: '2. Factored Moment (Distributed)',
+                    equation: 'Mu_dist = wu × L² / 8',
+                    substitution: `= ${wu.toFixed(2)} × ${span}² / 8`,
+                    result: `Mu_dist = ${Mu_dist.toFixed(2)} kN-m`
+                },
+                {
+                    label: '3. Factored Moment (Point Load)',
+                    equation: 'Mu_point = Pu × L / 4',
+                    substitution: `= ${Pu.toFixed(2)} × ${span} / 4`,
+                    result: `Mu_point = ${Mu_point.toFixed(2)} kN-m`
+                },
+                {
+                    label: '4. Total Factored Moment',
+                    equation: 'Mu = Mu_dist + Mu_point',
+                    substitution: `= ${Mu_dist.toFixed(2)} + ${Mu_point.toFixed(2)}`,
+                    result: `Mu = ${Mu.toFixed(2)} kN-m`
+                },
+                {
+                    label: '5. Nominal Moment (Plastic)',
+                    equation: 'Mn = Fy × Zx',
+                    substitution: `= ${sec.Fy} × ${Zx.toLocaleString()} / 1e6`,
+                    result: `Mn = ${(sec.Fy * Zx / 1e6).toFixed(2)} kN-m`
+                },
+                {
+                    label: '6. Design Strength',
+                    equation: 'φMn = 0.90 × Mn',
+                    substitution: `= 0.90 × ${(sec.Fy * Zx / 1e6).toFixed(2)}`,
+                    result: `φMn = ${phiMn.toFixed(2)} kN-m`
+                },
+                {
+                    label: '7. ตรวจสอบ LRFD',
+                    equation: 'Mu / φMn ≤ 1.0',
+                    substitution: `= ${Mu.toFixed(2)} / ${phiMn.toFixed(2)}`,
+                    result: `Ratio = ${ratio.toFixed(3)}`,
+                    check: ratio <= 1,
+                    checkText: `Mu/φMn = ${ratio.toFixed(3)} ${ratio <= 1 ? '≤ 1.0 ✓' : '> 1.0 ✗'}`
+                }
+            ];
+
+            showResultWithFormulas('b_result', ratio <= 1, 'Beam Design (LRFD)', loadCombos, summaryRows, formulaSteps);
         }
 
-        async function calculateColumnLRFD() {
-            const inputs = {
-                section_name: document.getElementById('c_section').value,
-                method: document.getElementById('c_method').value,
-                height: parseFloat(document.getElementById('c_height').value),
-                Kx: parseFloat(document.getElementById('c_kx').value),
-                Ky: parseFloat(document.getElementById('c_ky').value),
-                axial_load_D: parseFloat(document.getElementById('c_dl').value),
-                axial_load_L: parseFloat(document.getElementById('c_ll').value)
-            };
+        // COLUMN LRFD
+        function calculateColumnLRFD() {
+            const sec = getSection(document.getElementById('c_section').value);
+            const h = parseFloat(document.getElementById('c_height').value);
+            const kx = parseFloat(document.getElementById('c_kx').value);
+            const ky = parseFloat(document.getElementById('c_ky').value);
+            const dl = parseFloat(document.getElementById('c_dl').value);
+            const ll = parseFloat(document.getElementById('c_ll').value);
 
-            const div = document.getElementById('c_result');
-            div.innerHTML = '<p>⌛ กำลังคำนวณ...</p>';
-            div.className = 'result-box pass';
-            div.style.display = 'block';
+            // LRFD Factored Load
+            const Pu = 1.2 * dl + 1.6 * ll;
 
-            const res = await callApi('column', inputs);
-            if(!res) return;
+            // Slenderness
+            const kl_r_x = kx * h * 1000 / sec.rx;
+            const kl_r_y = ky * h * 1000 / sec.ry;
+            const kl_r = Math.max(kl_r_x, kl_r_y);
 
-            div.className = `result-box ${res.is_ok ? 'pass' : 'fail'}`;
-            div.innerHTML = `
-                <h3>${res.is_ok ? '✅ ' + res.status : '❌ ' + res.status}</h3>
-                <p><b>Column Design: ${inputs.section_name} (${inputs.method})</b></p>
-                <div class="info-box">
-                    <p>Interaction Ratio: <b>${res.interaction_ratio.toFixed(3)}</b></p>
-                    <p>KL/r max: <b>${res.critical_slenderness.toFixed(1)}</b></p>
-                </div>
-                ${renderSteps(res.calc_steps)}
-            `;
+            // Euler buckling stress (Fe)
+            const E = 200000;
+            const Fe = Math.PI * Math.PI * E / Math.pow(kl_r, 2);
+
+            // Critical stress (Fcr) per AISC E3
+            let Fcr;
+            if(kl_r <= 4.71 * Math.sqrt(E / sec.Fy)) {
+                Fcr = Math.pow(0.658, sec.Fy / Fe) * sec.Fy;
+            } else {
+                Fcr = 0.877 * Fe;
+            }
+
+            const phi_c = 0.90;
+            const phiPn = phi_c * Fcr * sec.A / 1000; // kN
+            const ratio = Pu / phiPn;
+
+            const summaryRows = [
+                ['Method', 'LRFD'],
+                ['Pu (Factored)', Pu.toFixed(1) + ' kN'],
+                ['KL/r (max)', kl_r.toFixed(1)],
+                ['φc', phi_c],
+                ['φPn', phiPn.toFixed(1) + ' kN'],
+                ['Pu/φPn', ratio.toFixed(3)]
+            ];
+
+            const loadCombos = [
+                { equation: 'Pu = 1.2DL + 1.6LL', value: Pu, unit: 'kN' }
+            ];
+
+            const formulaSteps = [
+                {
+                    label: '1. LRFD Factored Axial Load',
+                    equation: 'Pu = 1.2 × DL + 1.6 × LL',
+                    substitution: `= 1.2 × ${dl} + 1.6 × ${ll}`,
+                    result: `Pu = ${Pu.toFixed(1)} kN`
+                },
+                {
+                    label: '2. Slenderness Ratio',
+                    equation: 'KL/r_x = Kx × L / rx\nKL/r_y = Ky × L / ry',
+                    substitution: `KL/r_x = ${kx} × ${h*1000} / ${sec.rx.toFixed(1)}\nKL/r_y = ${ky} × ${h*1000} / ${sec.ry.toFixed(1)}`,
+                    result: `KL/r_x = ${kl_r_x.toFixed(1)}, KL/r_y = ${kl_r_y.toFixed(1)}\nKL/r_max = ${kl_r.toFixed(1)}`
+                },
+                {
+                    label: '3. Euler Buckling Stress',
+                    equation: 'Fe = π²E / (KL/r)²',
+                    substitution: `= π² × 200000 / ${kl_r.toFixed(1)}²`,
+                    result: `Fe = ${Fe.toFixed(2)} MPa`
+                },
+                {
+                    label: `4. Critical Stress (Fcr) ${kl_r <= 4.71*Math.sqrt(E/sec.Fy) ? 'Inelastic' : 'Elastic'}`,
+                    equation: kl_r <= 4.71*Math.sqrt(E/sec.Fy) 
+                        ? 'Fcr = 0.658^(Fy/Fe) × Fy' 
+                        : 'Fcr = 0.877 × Fe',
+                    substitution: kl_r <= 4.71*Math.sqrt(E/sec.Fy)
+                        ? `= 0.658^(${sec.Fy}/${Fe.toFixed(2)}) × ${sec.Fy}`
+                        : `= 0.877 × ${Fe.toFixed(2)}`,
+                    result: `Fcr = ${Fcr.toFixed(2)} MPa`
+                },
+                {
+                    label: '5. Design Compressive Strength',
+                    equation: 'φPn = φc × Fcr × Ag / 1000',
+                    substitution: `= 0.90 × ${Fcr.toFixed(2)} × ${sec.A.toLocaleString()} / 1000`,
+                    result: `φPn = ${phiPn.toFixed(1)} kN`
+                },
+                {
+                    label: '6. ตรวจสอบ LRFD',
+                    equation: 'Pu / φPn ≤ 1.0',
+                    substitution: `= ${Pu.toFixed(1)} / ${phiPn.toFixed(1)}`,
+                    result: `Ratio = ${ratio.toFixed(3)}`,
+                    check: ratio <= 1 && kl_r <= 200,
+                    checkText: `Pu/φPn = ${ratio.toFixed(3)} ${ratio <= 1 ? '≤ 1.0 ✓' : '> 1.0 ✗'}`
+                }
+            ];
+
+            showResultWithFormulas('c_result', ratio <= 1 && kl_r <= 200, 'Column Design (LRFD)', loadCombos, summaryRows, formulaSteps);
         }
-
-        // PURLIN LRFD (Keeping the old JS for now or porting to API?)
-        // I'll port Purlin too if possible, but let's stick to Beam/Column for now as requested.
-
 
         // BOLTED LRFD
         function calculateBoltedLRFD() {
@@ -754,64 +890,121 @@
             showResultWithFormulas('bp_result', bearing_ok && thickness_ok, 'Base Plate Design (LRFD)', loadCombos, summaryRows, formulaSteps);
         }
 
-        async function calculateFooting() {
-            const inputs = {
-                width: parseFloat(document.getElementById('f_width').value),
-                length: parseFloat(document.getElementById('f_length').value),
-                thickness: parseFloat(document.getElementById('f_thickness').value),
-                allowable_bearing_kPa: parseFloat(document.getElementById('f_qa').value),
-                axial_load_D: parseFloat(document.getElementById('f_dl').value),
-                axial_load_L: parseFloat(document.getElementById('f_ll').value)
-            };
-            const div = document.getElementById('f_result');
-            div.innerHTML = '<p>⌛ กำลังคำนวณ...</p>';
-            div.className = 'result-box pass';
-            div.style.display = 'block';
+        // TRUSS LRFD
+        function calculateTrussLRFD() {
+            const sec = getSection(document.getElementById('tr_section').value);
+            const L = parseFloat(document.getElementById('tr_length').value);
+            const type = document.getElementById('tr_type').value;
+            const dl = parseFloat(document.getElementById('tr_dl').value);
+            const ll = parseFloat(document.getElementById('tr_ll').value);
+            const kx = parseFloat(document.getElementById('tr_kx').value);
+            const ky = parseFloat(document.getElementById('tr_ky').value);
 
-            const res = await callApi('footing', inputs);
-            if(!res) return;
+            // LRFD Factored Load
+            const Pu = 1.2 * dl + 1.6 * ll;
+            let formulaSteps, summaryRows, isOk, loadCombos;
 
-            div.className = `result-box ${res.is_ok ? 'pass' : 'fail'}`;
-            div.innerHTML = `
-                <h3>${res.is_ok ? '✅ ' + res.status : '❌ ' + res.status}</h3>
-                <p><b>Isolated Footing: ${inputs.width}x${inputs.length} m</b></p>
-                <div class="info-box">
-                    <p>Bearing Ratio: <b>${res.bearing_ratio.toFixed(3)}</b></p>
-                    <p>1-way Shear: <b>${res.shear_1way_ratio.toFixed(3)}</b></p>
-                    <p>Punching Shear: <b>${res.shear_2way_ratio.toFixed(3)}</b></p>
-                </div>
-                ${renderSteps(res.calc_steps)}
-            `;
-        }
+            loadCombos = [{ equation: 'Pu = 1.2DL + 1.6LL', value: Pu, unit: 'kN' }];
 
-        async function calculateTrussLRFD() {
-            const inputs = {
-                section_name: document.getElementById('tr_section').value,
-                length: parseFloat(document.getElementById('tr_length').value),
-                method: 'LRFD',
-                force_D: parseFloat(document.getElementById('tr_dl').value),
-                force_L: parseFloat(document.getElementById('tr_ll').value),
-                K: parseFloat(document.getElementById('tr_kx').value)
-            };
-            
-            const div = document.getElementById('tr_result');
-            div.innerHTML = '<p>⌛ กำลังคำนวณ...</p>';
-            div.className = 'result-box pass';
-            div.style.display = 'block';
+            if(type === 'tension') {
+                const phi_t = 0.90; // yielding
+                const phiRn = phi_t * sec.Fy * sec.A / 1000;
+                const ratio = Pu / phiRn;
+                isOk = ratio <= 1;
 
-            const res = await callApi('truss', inputs);
-            if(!res) return;
+                summaryRows = [
+                    ['Type', 'Tension (LRFD)'],
+                    ['Pu (Factored)', Pu.toFixed(1) + ' kN'],
+                    ['φt (Yielding)', phi_t],
+                    ['φRn', phiRn.toFixed(1) + ' kN'],
+                    ['Pu/φRn', ratio.toFixed(3)]
+                ];
 
-            div.className = `result-box ${res.is_ok ? 'pass' : 'fail'}`;
-            div.innerHTML = `
-                <h3>${res.is_ok ? '✅ ' + res.status : '❌ ' + res.status}</h3>
-                <p><b>Truss Member: ${inputs.section_name} (${res.member_type})</b></p>
-                <div class="info-box">
-                    <p>Force Ratio: <b>${res.ratio.toFixed(3)}</b></p>
-                    <p>Slenderness L/r: <b>${res.slenderness.toFixed(1)}</b> (Limit: ${res.limit_slenderness})</p>
-                </div>
-                ${renderSteps(res.calc_steps)}
-            `;
+                formulaSteps = [
+                    {
+                        label: '1. LRFD Factored Load',
+                        equation: 'Pu = 1.2 × DL + 1.6 × LL',
+                        substitution: `= 1.2 × ${dl} + 1.6 × ${ll}`,
+                        result: `Pu = ${Pu.toFixed(1)} kN`
+                    },
+                    {
+                        label: '2. Design Tensile Strength (φ = 0.90)',
+                        equation: 'φRn = φ × Fy × Ag / 1000',
+                        substitution: `= 0.90 × ${sec.Fy} × ${sec.A.toLocaleString()} / 1000`,
+                        result: `φRn = ${phiRn.toFixed(1)} kN`
+                    },
+                    {
+                        label: '3. ตรวจสอบ LRFD',
+                        equation: 'Pu / φRn ≤ 1.0',
+                        substitution: `= ${Pu.toFixed(1)} / ${phiRn.toFixed(1)}`,
+                        result: `Ratio = ${ratio.toFixed(3)}`,
+                        check: ratio <= 1,
+                        checkText: `Pu/φRn = ${ratio.toFixed(3)} ${ratio <= 1 ? '≤ 1.0 ✓' : '> 1.0 ✗'}`
+                    }
+                ];
+            } else {
+                const kl_r_x = kx * L * 1000 / sec.rx;
+                const kl_r_y = ky * L * 1000 / sec.ry;
+                const kl_r = Math.max(kl_r_x, kl_r_y);
+                const E = 200000;
+                const Fe = Math.PI * Math.PI * E / Math.pow(kl_r, 2);
+                let Fcr;
+                if(kl_r <= 4.71 * Math.sqrt(E / sec.Fy)) {
+                    Fcr = Math.pow(0.658, sec.Fy / Fe) * sec.Fy;
+                } else {
+                    Fcr = 0.877 * Fe;
+                }
+                const phi_c = 0.90;
+                const phiPn = phi_c * Fcr * sec.A / 1000;
+                const ratio = Pu / phiPn;
+                isOk = ratio <= 1 && kl_r <= 200;
+
+                summaryRows = [
+                    ['Type', 'Compression (LRFD)'],
+                    ['Pu (Factored)', Pu.toFixed(1) + ' kN'],
+                    ['KL/r', kl_r.toFixed(1)],
+                    ['φc', phi_c],
+                    ['φPn', phiPn.toFixed(1) + ' kN'],
+                    ['Pu/φPn', ratio.toFixed(3)]
+                ];
+
+                formulaSteps = [
+                    {
+                        label: '1. LRFD Factored Load',
+                        equation: 'Pu = 1.2 × DL + 1.6 × LL',
+                        substitution: `= 1.2 × ${dl} + 1.6 × ${ll}`,
+                        result: `Pu = ${Pu.toFixed(1)} kN`
+                    },
+                    {
+                        label: '2. Slenderness',
+                        equation: 'KL/r = max(Kx×L/rx, Ky×L/ry)',
+                        substitution: `= max(${kl_r_x.toFixed(1)}, ${kl_r_y.toFixed(1)})`,
+                        result: `KL/r = ${kl_r.toFixed(1)}`
+                    },
+                    {
+                        label: '3. Critical Stress (Fcr)',
+                        equation: kl_r <= 4.71*Math.sqrt(E/sec.Fy) ? 'Fcr = 0.658^(Fy/Fe)×Fy' : 'Fcr = 0.877×Fe',
+                        substitution: `Fe = ${Fe.toFixed(2)} MPa`,
+                        result: `Fcr = ${Fcr.toFixed(2)} MPa`
+                    },
+                    {
+                        label: '4. Design Compressive Strength',
+                        equation: 'φPn = φc × Fcr × Ag / 1000',
+                        substitution: `= 0.90 × ${Fcr.toFixed(2)} × ${sec.A.toLocaleString()} / 1000`,
+                        result: `φPn = ${phiPn.toFixed(1)} kN`
+                    },
+                    {
+                        label: '5. ตรวจสอบ LRFD',
+                        equation: 'Pu / φPn ≤ 1.0',
+                        substitution: `= ${Pu.toFixed(1)} / ${phiPn.toFixed(1)}`,
+                        result: `Ratio = ${ratio.toFixed(3)}`,
+                        check: isOk,
+                        checkText: `Pu/φPn = ${ratio.toFixed(3)} ${ratio <= 1 ? '≤ 1.0 ✓' : '> 1.0 ✗'}`
+                    }
+                ];
+            }
+
+            showResultWithFormulas('tr_result', isOk, `Truss ${type === 'tension' ? 'Tension' : 'Compression'} (LRFD)`, loadCombos, summaryRows, formulaSteps);
         }
 
         // BRACING LRFD

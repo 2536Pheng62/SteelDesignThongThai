@@ -210,11 +210,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\pang_\\.gemini\\tmp\\system32\\Purlin_Disign\\pdf_service\\PurlinPdfService.csproj",
+      "projectUniqueName": "C:\\Code_design\\Purlin_Disign\\pdf_service\\PurlinPdfService.csproj",
       "projectName": "PurlinPdfService",
-      "projectPath": "C:\\Users\\pang_\\.gemini\\tmp\\system32\\Purlin_Disign\\pdf_service\\PurlinPdfService.csproj",
+      "projectPath": "C:\\Code_design\\Purlin_Disign\\pdf_service\\PurlinPdfService.csproj",
       "packagesPath": "C:\\Users\\pang_\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\pang_\\.gemini\\tmp\\system32\\Purlin_Disign\\pdf_service\\obj\\",
+      "outputPath": "C:\\Code_design\\Purlin_Disign\\pdf_service\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

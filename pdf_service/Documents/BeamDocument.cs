@@ -25,9 +25,7 @@ internal class BeamDocument(InputModel model) : IDocument
         container.Page(page =>
         {
             page.Size(PageSizes.A4);
-            page.MarginTop(20);
-            page.MarginBottom(18);
-            page.MarginHorizontal(20);
+            page.MarginTop(20).MarginBottom(18).MarginHorizontal(20);
             page.DefaultTextStyle(t => t.FontFamily(Font).FontSize(FontBase));
 
             page.Header().Element(ComposeHeader);
@@ -47,7 +45,7 @@ internal class BeamDocument(InputModel model) : IDocument
 
             row.ConstantItem(180).AlignRight().Text(
                 $"{_proj.Standard}  |  {_proj.Method}")
-                .FontFamily(Font).FontSize(FontSm).FontColor(Color.FromHex("#a8d8ea"));
+                .FontFamily(Font).FontSize(FontSm).FontColor("#a8d8ea");
         });
     }
 
@@ -81,33 +79,33 @@ internal class BeamDocument(InputModel model) : IDocument
             CoverBlock(col.Item());
 
             // 1. Section properties
-            col.Item().SectionBanner("1.  คุณสมบัติหน้าตัด (Section Properties)");
+            SectionBanner(col.Item(), "1.  คุณสมบัติหน้าตัด (Section Properties)");
             SectionPropsTable(col.Item());
 
             // 2. Load combinations
-            col.Item().SectionBanner("2.  การรวมน้ำหนักบรรทุก (Load Combinations — ASD)");
+            SectionBanner(col.Item(), "2.  การรวมน้ำหนักบรรทุก (Load Combinations — ASD)");
             LoadCombTable(col.Item());
 
             // 3. Bending
-            col.Item().SectionBanner("3.  การตรวจสอบหน่วยแรงดัด (Bending Stress Check)");
+            SectionBanner(col.Item(), "3.  การตรวจสอบหน่วยแรงดัด (Bending Stress Check)");
             col.Item().Text($"กรณีวิกฤต: {_data.CriticalLoadCase}")
                .FontFamily(Font).FontSize(FontBase).Italic().FontColor(Blue);
             BendingTable(col.Item());
 
             // 4. Shear
-            col.Item().SectionBanner("4.  การตรวจสอบหน่วยแรงเฉือน (Shear Stress Check)");
+            SectionBanner(col.Item(), "4.  การตรวจสอบหน่วยแรงเฉือน (Shear Stress Check)");
             ShearTable(col.Item());
 
             // 5. Deflection
-            col.Item().SectionBanner("5.  การตรวจสอบการแอ่นตัว (Deflection Check)");
+            SectionBanner(col.Item(), "5.  การตรวจสอบการแอ่นตัว (Deflection Check)");
             DeflectionTable(col.Item());
 
             // 6. Summary
-            col.Item().SectionBanner("6.  สรุปผลการออกแบบ (Design Summary)");
+            SectionBanner(col.Item(), "6.  สรุปผลการออกแบบ (Design Summary)");
             SummaryTable(col.Item());
 
             col.Item().Height(8);
-            col.Item().PassFailBanner(_data.IsOk, _data.Status);
+            PassFailBanner(col.Item(), _data.IsOk, _data.Status);
         });
     }
 
@@ -176,7 +174,7 @@ internal class BeamDocument(InputModel model) : IDocument
             // Rows
             foreach (var lc in _data.LoadCases)
             {
-                Color bg = lc.StressRatio > 1.0 ? FailBg : lc.StressRatio > 0.9 ? WarnBg : Colors.White;
+                var bg = lc.StressRatio > 1.0 ? FailBg : lc.StressRatio > 0.9 ? WarnBg : Colors.White;
                 void Cell(string v, bool right = false) =>
                     table.Cell().Background(bg).Border(0.3f).BorderColor(Border).Padding(3)
                          .Text(v).FontFamily(Font).FontSize(FontSm)
@@ -297,7 +295,7 @@ internal class BeamDocument(InputModel model) : IDocument
 
             for (int i = 0; i < items.Length; i += 2)
             {
-                Color bg = i % 4 == 0 ? Colors.White : RowAlt;
+                var bg = i % 4 == 0 ? Colors.White : RowAlt;
                 (string k1, string v1) = items[i];
                 (string k2, string v2) = i + 1 < items.Length ? items[i + 1] : ("", "");
 
@@ -364,17 +362,17 @@ internal class BeamDocument(InputModel model) : IDocument
             foreach (var (label, ratio) in checks)
             {
                 bool ok  = ratio <= 1.0;
-                Color bg  = ok ? PassBg  : FailBg;
-                Color clr = ok ? PassGrn : FailRed;
+                var  bg  = ok ? PassBg  : FailBg;
+                var  clr = ok ? PassGrn : FailRed;
 
-                void SC(string t, bool right = false, Color? color = null, bool bold = false) =>
+                void SC(string t, bool right = false, string? color = null, bool bold = false) =>
                     table.Cell().Background(bg).Border(0.3f).BorderColor(Border).Padding(3)
                          .Text(t).FontFamily(Font).FontSize(FontSm)
                          .With(tx =>
                          {
                              if (right) tx.AlignRight();
                              if (bold)  tx.Bold();
-                             if (color.HasValue) tx.FontColor(color.Value);
+                             if (color != null) tx.FontColor(color);
                          });
 
                 SC(label);

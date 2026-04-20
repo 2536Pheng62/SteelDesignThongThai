@@ -1,0 +1,42 @@
+functionsDirectory = "C:\\Code_design\\Purlin_Disign\\netlify\\functions"
+functionsDirectoryOrigin = "config-v1"
+redirectsOrigin = "config"
+SITE_ID = "fabbe670-8c12-4ab5-b7e2-8daefd3b0121"
+plugins = []
+headers = []
+
+[build]
+publish = "C:\\Code_design\\Purlin_Disign\\public"
+publishOrigin = "config"
+functions = "C:\\Code_design\\Purlin_Disign\\netlify\\functions"
+
+[build.environment]
+PYTHON_VERSION = "3.9"
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[functions]
+
+[functions."*"]
+
+[[redirects]]
+from = "/api/*"
+to = "/.netlify/functions/:splat"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]

@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(netlify --version)",
+      "Bash(gh auth:*)",
+      "Bash(git --version)",
+      "Bash(git config:*)",
+      "Bash(python -m http.server 8765)",
+      "Bash(python3 -m http.server 8765)",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(where py:*)",
+      "Bash(where node:*)",
+      "Bash(where npx:*)",
+      "Bash(npx --yes serve -l 8765)",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__new_page",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__take_screenshot",
+      "mcp__plugin_chrome-devtools-mcp_chrome-devtools__navigate_page",
+      "Bash(python -c \"import numpy; print\\(numpy.__version__\\)\")",
+      "Read(//c/Code_design/QuestPDF//**)",
+      "Read(//c/Code_design/QuestPDF/Source//**)",
+      "Bash(cmd /c \"dotnet --version\")",
+      "Bash(powershell -Command \"dotnet --version\")",
+      "Bash(powershell -Command \"dotnet --list-sdks\")",
+      "Bash(powershell -Command \"dotnet build -c Release 2>&1\")"
+    ]
+  }
+}

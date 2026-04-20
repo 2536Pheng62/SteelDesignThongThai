@@ -1,6 +1,44 @@
 # Steel Structure Design Application (โปรแกรมออกแบบโครงสร้างเหล็ก)
 
-A comprehensive steel structure design application based on **Thai Engineering Institute Standards (วสท. 011038-22)** and **Thai Industrial Standards (TIS)**.
+A comprehensive steel structure design application based on **Thai Engineering Institute Standards (วสท. 011038-22)** and **Thai Industrial Standards (มอก.)**.
+
+## Thai Standards Compliance (การปฏิบัติตามมาตรฐานไทย)
+
+### Material Standards (มาตรฐานวัสดุ)
+| Standard | Description | Implementation |
+|----------|-------------|----------------|
+| **มอก. 1227-2558** | Hot-rolled structural steel (H-beams, I-beams, angles) | ✅ Full compliance with SS400, SM400, SM490, SM520, SS540 grades |
+| **มอก. 107-2533** | Structural hollow sections (pipes, RHS, SHS) | ✅ Full compliance with STKR400 grade |
+
+### Design Standards (มาตรฐานการออกแบบ)
+| Standard | Description | Implementation |
+|----------|-------------|----------------|
+| **วสท. 011038-22** | Structural Steel Buildings Design | ✅ ASD method fully implemented |
+| **วสท. 011038-22** | LRFD method | ⚠️ Code exists, not wired to GUI yet |
+
+### Load Standards (มาตรฐานน้ำหนักบรรทุก)
+| Standard | Description | Implementation |
+|----------|-------------|----------------|
+| **มยผ. 1311-50** | Wind load calculations | ⚠️ Currently using ASCE 7 approximation - **Needs update** |
+| **มยผ. 1301/1302-61** | Earthquake resistance | ⚠️ Parameters defined, **design procedures not implemented** |
+
+### Material Properties (คุณสมบัติวัสดุ)
+
+| Grade | Fy (MPa) | Fu (MPa) | Application | Standard |
+|-------|----------|----------|-------------|----------|
+| SS400 | 245 | 400 | General structural steel | มอก. 1227-2558 |
+| SM400 | 245 | 400 | Welded structural steel | มอก. 1227-2558 |
+| SM490 | 325 | 490 | Higher strength structural steel | มอก. 1227-2558 |
+| SM520 | 365 | 520 | High strength structural steel | มอก. 1227-2558 |
+| SS540 | 375 | 540 | High strength structural steel | มอก. 1227-2558 |
+| STKR400 | 245 | 290 | Hollow sections (pipes, RHS) | มอก. 107-2533 |
+
+### Section Tolerances (ค่าเผื่อการผลิต)
+
+Per มอก. standards, manufacturing tolerances are documented for:
+- **H/I-Beams (มอก. 1227-2558)**: Depth ±1.5%, Width ±2%, Thickness ±0.3-0.4mm, Weight ±2.5-3%
+- **Angles (มอก. 1227-2558)**: Leg ±1.5%, Thickness ±0.3-0.5mm, Weight ±4%
+- **Hollow Sections (มอก. 107-2533)**: OD ±0.75%, Wall ±12.5%, Weight ±3-3.5%
 
 ## Features
 
@@ -90,14 +128,47 @@ Each module performs comprehensive design checks:
 - Required packages:
 
 ```bash
-pip install matplotlib reportlab
+pip install -r requirements.txt
 ```
+
+This will install:
+- `matplotlib` - For plotting and visualizations
+- `reportlab` - For PDF report generation with Thai fonts
+- `openpyxl` - For Excel export of calculation sheets
 
 ### Running the Application
 
 ```bash
 python main_app.py
 ```
+
+## Export & Reporting
+
+### PDF Reports
+The application can generate professional PDF reports with:
+- ✅ Thai font support (Tahoma, Arial Unicode)
+- ✅ Project metadata (project name, engineer, checker, date)
+- ✅ Section properties and material specs
+- ✅ Wind load calculations (for purlins)
+- ✅ Load combination checks
+- ✅ Bending stress, shear stress, and deflection verification
+- ✅ **Bending Moment and Shear Force Diagrams** (visual charts)
+- ✅ Pass/Fail summary with interaction ratios
+- ✅ Professional formatting with color-coded results
+
+### Excel Export
+Calculation data can be exported to Excel with:
+- ✅ Multiple worksheets (Summary, Load Combinations, Details)
+- ✅ Formatted tables with pass/fail highlighting
+- ✅ All input parameters and results
+- ✅ Ready for further analysis or submission
+
+### How to Export
+1. Perform a design calculation (click "คำนวณ")
+2. Click "Export PDF รายการคำนวณ" or "Export Excel" button
+3. Fill in project metadata (optional, can use defaults)
+4. Choose save location and filename
+5. Open the generated file
 
 ## Usage Guide
 
@@ -215,13 +286,15 @@ Purlin_Disign/
 
 - [ ] Truss design module (โครงถัก)
 - [ ] Footing/Foundation design (ฐานราก)
-- [ ] PDF report generation with Thai fonts
+- [x] PDF report generation with Thai fonts
+- [x] Excel export for calculation sheets
+- [x] Bending moment and shear force diagrams in PDF
 - [ ] 3D visualization of structures
 - [ ] LRFD design method
 - [ ] Seismic design per มยผ. 1302-61
 - [ ] Steel grade optimization
 - [ ] Connection detail drawings
-- [ ] Export to Excel calculation sheets
+- [ ] Batch report generation for multiple members
 - [ ] Multi-language support (Thai/English toggle)
 
 ## Disclaimer
@@ -232,11 +305,22 @@ The wind load calculations use simplified methods. For critical structures, refe
 
 ## References
 
-1. วิศวกรรมสถานแห่งประเทศไทย ในพระบรมราชูปถัมภ์ (วสท.), **มาตรฐานสำหรับการออกแบบอาคารโครงสร้างเหล็กรูปพรรณ พ.ศ. 2565**
-2. กรมพัฒนาพลังงานทดแทนและอนุรักษ์พลังงาน, **มาตรฐานการออกแบบอาคารประหยัดพลังงาน**
-3. AISC 360-16, Specification for Structural Steel Buildings
-4. ASCE 7-16, Minimum Design Loads for Buildings and Other Structures
-5. TIS 1227, TIS 1228, TIS 107 - Thai Industrial Standards for steel sections
+### Thai Standards (มาตรฐานไทย)
+1. **สำนักงานมาตรฐานผลิตภัณฑ์อุตสาหกรรม (สมอ.)**, **มอก. 1227-2558**: เหล็กรูปพรรณรีดร้อนรูปตัวเอช สำหรับงานโครงสร้าง, กรมอุตสาหกรรมพื้นฐานและการเหมืองแร่, 2558
+2. **สำนักงานมาตรฐานผลิตภัณฑ์อุตสาหกรรม (สมอ.)**, **มอก. 107-2533**: เหล็กโครงสร้างรูปพรรณกลวง, กรมอุตสาหกรรมพื้นฐานและการเหมืองแร่, 2533
+3. **วิศวกรรมสถานแห่งประเทศไทย ในพระบรมราชูปถัมภ์ (วสท.)**, **มาตรฐานสำหรับการออกแบบอาคารโครงสร้างเหล็กรูปพรรณ พ.ศ. 2565** (วสท. 011038-22)
+4. **กรมโยธาธิการและผังเมือง**, **มยผ. 1311-50**: มาตรฐานการออกแบบอาคารรับแรงลม, 2550
+5. **กรมโยธาธิการและผังเมือง**, **มยผ. 1301-61**: มาตรฐานการออกแบบอาคารรับแรงแผ่นดินไหว, 2561
+6. **กรมโยธาธิการและผังเมือง**, **มยผ. 1302-61**: มาตรฐานการออกแบบอาคารต้านทานแรงแผ่นดินไหว, 2561
+
+### International Standards (มาตรฐานสากล)
+7. AISC 360-16, Specification for Structural Steel Buildings
+8. ASCE 7-16, Minimum Design Loads for Buildings and Other Structures
+9. JIS G 3101:2015, Rolled steels for general structure (Reference for SS/SM grades)
+
+### Building Control Law (กฎหมายควบคุมอาคาร)
+10. **พระราชบัญญัติควบคุมอาคาร พ.ศ. 2522** และที่แก้ไขเพิ่มเติม
+11. **กฎกระทรวงฉบับที่ 6 (พ.ศ. 2527)** ออกตามความในพระราชบัญญัติควบคุมอาคาร พ.ศ. 2522: เรื่องน้ำหนักบรรทุก
 
 ## License
 

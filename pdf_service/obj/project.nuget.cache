@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "3yDHhm6f86M=",
+  "success": true,
+  "projectFilePath": "C:\\Code_design\\Purlin_Disign\\pdf_service\\PurlinPdfService.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\pang_\\.nuget\\packages\\questpdf\\2026.2.4\\questpdf.2026.2.4.nupkg.sha512"
+  ],
+  "logs": []
+}

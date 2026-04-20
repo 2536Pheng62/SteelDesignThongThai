@@ -1,0 +1,6 @@
+# Streamlit Web App Requirements
+streamlit>=1.28.0
+matplotlib>=3.5.0
+reportlab>=3.6.0
+openpyxl>=3.0.0
+numpy>=1.21.0

@@ -1,37 +1,98 @@
 """
 Steel Section Database for Thai Structural Steel Design
-Based on TIS (Thai Industrial Standard) and manufacturer data
+Based on Thai Industrial Standards (มอก.) and Engineering Institute of Thailand (วสท.)
+
+มาตรฐานที่เกี่ยวข้อง:
+- มอก. 1227-2558: เหล็กรูปพรรณรีดร้อนรูปตัวเอช (Hot-rolled H-shaped steel)
+- มอก. 107-2533: เหล็กโครงสร้างรูปพรรณกลวง (Structural hollow sections)
+- วสท. 011038-22: มาตรฐานการออกแบบอาคารโครงสร้างเหล็กรูปพรรณ
+
+Material Grades per มอก.:
+- SS400: เหล็กโครงสร้างทั่วไป (General structural steel), Fy = 245 MPa, Fu = 400 MPa
+- SM400: เหล็กโครงสร้างสำหรับงานเชื่อม (Welded structural steel), Fy = 245 MPa, Fu = 400 MPa
+- SM490: เหล็กโครงสร้างความแข็งแรงสูง, Fy = 325 MPa, Fu = 490 MPa
+- SM520: เหล็กโครงสร้างความแข็งแรงสูงมาก, Fy = 365 MPa, Fu = 520 MPa
+- SS540: เหล็กโครงสร้างความแข็งแรงสูง, Fy = 375 MPa, Fu = 540 MPa
+
+หมายเหตุ:
+- ค่าคุณสมบัติหน้าตัดอ้างอิงจาก มอก. และข้อมูลผู้ผลิตในประเทศไทย
+- น้ำหนักต่อเมตรคำนวณจากความหนาแน่นเหล็ก 7,850 kg/m³
 """
 from dataclasses import dataclass
 
 
 @dataclass
 class SteelSection:
-    """Represents the properties of a steel section."""
+    """Represents the properties of a steel section per มอก. standards."""
     name: str
-    weight: float      # kg/m
-    Fy: float          # MPa (Yield strength)
-    Fu: float          # MPa (Ultimate strength)
-    A: float           # mm^2 (Cross-sectional area)
-    d: float           # mm (Depth)
-    tw: float          # mm (Web thickness)
-    bf: float          # mm (Flange width)
-    tf: float          # mm (Flange thickness)
-    Ix: float          # mm^4 (Moment of inertia about x-axis)
-    Sx: float          # mm^3 (Section modulus about x-axis)
-    rx: float          # mm (Radius of gyration about x-axis)
-    Iy: float          # mm^4 (Moment of inertia about y-axis)
-    Sy: float          # mm^3 (Section modulus about y-axis)
-    ry: float          # mm (Radius of gyration about y-axis)
-    Zx: float          # mm^3 (Plastic section modulus about x-axis)
-    Zy: float          # mm^3 (Plastic section modulus about y-axis)
-    J: float           # mm^4 (Torsional constant)
-    Cw: float          # mm^6 (Warping constant)
+    weight: float      # kg/m (น้ำหนักต่อเมตร)
+    Fy: float          # MPa (กำลังรับแรงดึงคราก - Yield strength per มอก.)
+    Fu: float          # MPa (กำลังรับแรงดึงสูงสุด - Ultimate strength per มอก.)
+    A: float           # mm^2 (พื้นที่หน้าตัด - Cross-sectional area)
+    d: float           # mm (ความลึก - Depth)
+    tw: float          # mm (ความหนาเว็บ - Web thickness)
+    bf: float          # mm (ความกว้างหน้าแปลน - Flange width)
+    tf: float          # mm (ความหนาหน้าแปลน - Flange thickness)
+    Ix: float          # mm^4 (โมเมนต์ความเฉื่อยแกน X - Moment of inertia about x-axis)
+    Sx: float          # mm^3 (โมดูลัสหน้าตัดแกน X - Section modulus about x-axis)
+    rx: float          # mm (รัศมีไจเรชันแกน X - Radius of gyration about x-axis)
+    Iy: float          # mm^4 (โมเมนต์ความเฉื่อยแกน Y - Moment of inertia about y-axis)
+    Sy: float          # mm^3 (โมดูลัสหน้าตัดแกน Y - Section modulus about y-axis)
+    ry: float          # mm (รัศมีไจเรชันแกน Y - Radius of gyration about y-axis)
+    Zx: float          # mm^3 (โมดูลัสพลาสติกแกน X - Plastic section modulus about x-axis)
+    Zy: float          # mm^3 (โมดูลัสพลาสติกแกน Y - Plastic section modulus about y-axis)
+    J: float           # mm^4 (ค่าคงที่แรงบิด - Torsional constant)
+    Cw: float          # mm^6 (ค่าคงที่การบิดงอ - Warping constant)
+    standard: str = "" # มาตรฐานอ้างอิง (e.g., "มอก. 1227-2558")
 
 
 # ============================================================================
-# C-CHANNEL (เหล็กรูปตัวซี) - TIS 1228
+# Material Properties per มอก. 1227-2558
 # ============================================================================
+@dataclass
+class MaterialGrade:
+    """Material grade definition per มอก. standard."""
+    grade: str
+    Fy: float          # MPa - Minimum yield strength
+    Fu: float          # MPa - Minimum tensile strength
+    application: str   # Typical application
+    standard: str      # Reference standard
+
+MATERIAL_GRADES = {
+    # Hot-rolled structural steel per มอก. 1227-2558
+    "SS400": MaterialGrade(
+        grade="SS400", Fy=245, Fu=400,
+        application="เหล็กรูปพรรณทั่วไป (General structural steel)",
+        standard="มอก. 1227-2558"
+    ),
+    "SM400": MaterialGrade(
+        grade="SM400", Fy=245, Fu=400,
+        application="เหล็กรูปพรรณสำหรับงานเชื่อม (Welded structural steel)",
+        standard="มอก. 1227-2558"
+    ),
+    "SM490": MaterialGrade(
+        grade="SM490", Fy=325, Fu=490,
+        application="เหล็กรูปพรรณความแข็งแรงสูง (Higher strength structural steel)",
+        standard="มอก. 1227-2558"
+    ),
+    "SM520": MaterialGrade(
+        grade="SM520", Fy=365, Fu=520,
+        application="เหล็กรูปพรรณความแข็งแรงสูงมาก (High strength structural steel)",
+        standard="มอก. 1227-2558"
+    ),
+    "SS540": MaterialGrade(
+        grade="SS540", Fy=375, Fu=540,
+        application="เหล็กรูปพรรณความแข็งแรงสูง (High strength structural steel)",
+        standard="มอก. 1227-2558"
+    ),
+}
+
+
+# ============================================================================
+# C-CHANNEL (เหล็กรูปตัวซี) - Cold-formed per manufacturer data
+# ============================================================================
+# หมายเหตุ: เหล็กตัวซีเย็นขึ้นรูปตาม มอก. 107-2533 หรือข้อมูลผู้ผลิต
+# ค่า Fy/Fu แตกต่างกันตามความหนาของเหล็ก
 C_CHANNELS = {
     "C100x50x20x2.3": SteelSection(
         name="C100x50x20x2.3", weight=3.67, Fy=245, Fu=290, A=467.2, d=100, tw=2.3, bf=50, tf=2.3,
@@ -86,8 +147,9 @@ C_CHANNELS = {
 }
 
 # ============================================================================
-# H-BEAM (เหล็กเอชบีม) - TIS 1227
-# Wide Flange / H-Shaped Sections
+# H-BEAM (เหล็กเอชบีม) - มอก. 1227-2558
+# Wide Flange / H-Shaped Sections (เหล็กรูปตัวเอชรีดร้อน)
+# Material: SS400 (Fy = 245 MPa, Fu = 400 MPa) per มอก. 1227-2558
 # ============================================================================
 H_BEAMS = {
     "H100x100x6x8": SteelSection(
@@ -138,8 +200,9 @@ H_BEAMS = {
 }
 
 # ============================================================================
-# I-BEAM (เหล็กไอบีม) - TIS 1227
-# Standard I-Shaped Sections
+# I-BEAM (เหล็กไอบีม) - มอก. 1227-2558
+# Standard I-Shaped Sections (เหล็กรูปตัวไอีรีดร้อน)
+# Material: SS400 (Fy = 245 MPa, Fu = 400 MPa) per มอก. 1227-2558
 # ============================================================================
 I_BEAMS = {
     "I100x75x4.5x6": SteelSection(
@@ -185,7 +248,9 @@ I_BEAMS = {
 }
 
 # ============================================================================
-# EQUAL ANGLE (เหล็กฉากเท่า) - TIS 1227
+# EQUAL ANGLE (เหล็กฉากเท่า) - มอก. 1227-2558
+# Equal Leg Angles (เหล็กรูปตัวแอลขาเท่า)
+# Material: SS400 (Fy = 245 MPa, Fu = 400 MPa) per มอก. 1227-2558
 # ============================================================================
 EQUAL_ANGLES = {
     "L25x25x3": SteelSection(
@@ -246,7 +311,9 @@ EQUAL_ANGLES = {
 }
 
 # ============================================================================
-# UNEQUAL ANGLE (เหล็กฉากไม่เท่า) - TIS 1227
+# UNEQUAL ANGLE (เหล็กฉากไม่เท่า) - มอก. 1227-2558
+# Unequal Leg Angles (เหล็กรูปตัวแอลขาไม่เท่า)
+# Material: SS400 (Fy = 245 MPa, Fu = 400 MPa) per มอก. 1227-2558
 # ============================================================================
 UNEQUAL_ANGLES = {
     "L65x50x5": SteelSection(
@@ -287,7 +354,9 @@ UNEQUAL_ANGLES = {
 }
 
 # ============================================================================
-# STEEL PIPE (เหล็กท่อกลม) - TIS 107
+# STEEL PIPE (เหล็กท่อกลม) - มอก. 107-2533
+# Steel Pipes for General Structure (เหล็กท่อกลมโครงสร้าง)
+# Material: STPG400 equivalent to SS400 (Fy = 245 MPa, Fu = 305 MPa) per มอก. 107-2533
 # ============================================================================
 STEEL_PIPES = {
     "SGP15A(21.7x2.8)": SteelSection(
@@ -353,8 +422,9 @@ STEEL_PIPES = {
 }
 
 # ============================================================================
-# RHS / SHS (เหล็กกล่องสี่เหลี่ยมผืนผ้า/จตุรัส) - TIS 1228 / TIS 107-2
-# Rectangular Hollow Section / Square Hollow Section
+# RHS / SHS (เหล็กกล่องสี่เหลี่ยม) - มอก. 107-2533
+# Rectangular/Square Hollow Sections (เหล็กท่อกลวงสี่เหลี่ยม/จัตุรัส)
+# Material: STKR400 equivalent to SS400 (Fy = 245 MPa, Fu = 290 MPa) per มอก. 107-2533
 # ============================================================================
 RHS_SECTIONS = {
     # SHS - Square Hollow Sections
@@ -492,7 +562,9 @@ RHS_SECTIONS = {
 }
 
 # ============================================================================
-# STEEL PLATE (เหล็กแผ่น)
+# STEEL PLATE (เหล็กแผ่น) - มอก. 1227-2558
+# Steel Plates for structural use (เหล็กแผ่นโครงสร้าง)
+# Material: SS400/SM400 (Fy = 245 MPa, Fu = 400 MPa) per มอก. 1227-2558
 # ============================================================================
 @dataclass
 class SteelPlate:
@@ -596,3 +668,208 @@ WELDS = {
     "E70XX": WeldProperties(name="E70XX", electrode="E70XX", Fu=483, shear_strength=145),
     "E80XX": WeldProperties(name="E80XX", electrode="E80XX", Fu=552, shear_strength=166),
 }
+ 
+
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
+
+def get_section_standard(section_name: str) -> str:
+    """Determine which มอก. standard a section belongs to."""
+    if section_name in C_CHANNELS:
+        return "มอก. 107-2533 (Cold-formed C-channel)"
+    elif section_name in H_BEAMS or section_name in I_BEAMS:
+        return "มอก. 1227-2558 (Hot-rolled H/I-beam)"
+    elif section_name in EQUAL_ANGLES or section_name in UNEQUAL_ANGLES:
+        return "มอก. 1227-2558 (Angle sections)"
+    elif section_name in STEEL_PIPES:
+        return "มอก. 107-2533 (Steel pipes)"
+    elif section_name in RHS_SECTIONS:
+        return "มอก. 107-2533 (Hollow sections)"
+    elif section_name in STEEL_PLATES:
+        return "มอก. 1227-2558 (Steel plates)"
+    return "Unknown standard"
+
+
+def get_tolerances(section_type: str) -> dict:
+    """
+    Return manufacturing tolerances per มอก. standards.
+    
+    Tolerances based on มอก. 1227-2558 and มอก. 107-2533:
+    - Depth/Width: ±1-3% depending on size
+    - Thickness: ±0.2-0.5mm depending on thickness
+    - Weight: ±2.5-5% depending on section
+    """
+    tolerances = {
+        "H_beam": {
+            "depth": "±1.5% or ±2mm (whichever is greater)",
+            "width": "±2% or ±2mm (whichever is greater)",
+            "web_thickness": "±0.3mm (t≤8mm), ±0.4mm (t>8mm)",
+            "flange_thickness": "±0.3mm (t≤8mm), ±0.4mm (t>8mm)",
+            "weight": "±2.5%",
+            "standard": "มอก. 1227-2558"
+        },
+        "I_beam": {
+            "depth": "±2% or ±2mm",
+            "width": "±2%",
+            "web_thickness": "±0.3mm (t≤8mm), ±0.4mm (t>8mm)",
+            "flange_thickness": "±0.3mm (t≤8mm), ±0.4mm (t>8mm)",
+            "weight": "±3%",
+            "standard": "มอก. 1227-2558"
+        },
+        "angle": {
+            "leg_length": "±1.5%",
+            "thickness": "±0.3mm (t≤6mm), ±0.5mm (t>6mm)",
+            "weight": "±4%",
+            "standard": "มอก. 1227-2558"
+        },
+        "pipe": {
+            "outside_diameter": "±0.75%",
+            "wall_thickness": "±12.5%",
+            "weight": "±3.5%",
+            "standard": "มอก. 107-2533"
+        },
+        "hollow_section": {
+            "depth": "±1%",
+            "width": "±1%",
+            "wall_thickness": "±10%",
+            "weight": "±3%",
+            "standard": "มอก. 107-2533"
+        },
+        "C_channel": {
+            "depth": "±1.5%",
+            "width": "±2%",
+            "thickness": "±0.2mm (t≤3mm), ±0.3mm (t>3mm)",
+            "weight": "±4%",
+            "standard": "Manufacturer data (Cold-formed per มอก. 107-2533)"
+        },
+        "plate": {
+            "thickness": "±0.3mm (t≤5mm), ±0.5mm (5<t≤10mm), ±0.8mm (t>10mm)",
+            "width": "±5mm",
+            "weight": "±5%",
+            "standard": "มอก. 1227-2558"
+        },
+    }
+    return tolerances.get(section_type, {})
+
+
+def get_all_sections_by_standard() -> dict:
+    """Return all sections grouped by their มอก. standard."""
+    return {
+        "มอก. 1227-2558 (Hot-rolled sections)": {
+            "H-Beams": list(H_BEAMS.keys()),
+            "I-Beams": list(I_BEAMS.keys()),
+            "Equal Angles": list(EQUAL_ANGLES.keys()),
+            "Unequal Angles": list(UNEQUAL_ANGLES.keys()),
+            "Plates": list(STEEL_PLATES.keys()),
+        },
+        "มอก. 107-2533 (Hollow sections)": {
+            "Steel Pipes": list(STEEL_PIPES.keys()),
+            "RHS/SHS": list(RHS_SECTIONS.keys()),
+            "C-Channels (Cold-formed)": list(C_CHANNELS.keys()),
+        },
+    }
+
+
+def get_section_summary(section_name: str, section_dict: dict = None) -> str:
+    """Get a human-readable summary of a section with standard reference."""
+    if section_dict is None:
+        # Try to find the section
+        for d in [C_CHANNELS, H_BEAMS, I_BEAMS, EQUAL_ANGLES, UNEQUAL_ANGLES, 
+                  STEEL_PIPES, RHS_SECTIONS]:
+            if section_name in d:
+                section_dict = d
+                break
+    
+    if section_dict is None or section_name not in section_dict:
+        return f"Section '{section_name}' not found"
+    
+    sec = section_dict[section_name]
+    standard = get_section_standard(section_name)
+    
+    summary = f"""
+Section: {section_name}
+Standard: {standard}
+Weight: {sec.weight} kg/m
+Material: Fy={sec.Fy} MPa, Fu={sec.Fu} MPa
+Dimensions: d={sec.d}mm, bf={sec.bf}mm, tw={sec.tw}mm, tf={sec.tf}mm
+Properties: Ix={sec.Ix/1e6:.2f}×10⁶ mm⁴, Sx={sec.Sx/1e3:.1f}×10³ mm³
+    """.strip()
+    
+    return summary
+
+
+# ============================================================================
+# VALIDATION
+# ============================================================================
+
+def validate_section_properties():
+    """Validate all section properties for consistency."""
+    issues = []
+    
+    # Check all sections have required properties
+    all_sections = {
+        "C_CHANNELS": C_CHANNELS,
+        "H_BEAMS": H_BEAMS,
+        "I_BEAMS": I_BEAMS,
+        "EQUAL_ANGLES": EQUAL_ANGLES,
+        "UNEQUAL_ANGLES": UNEQUAL_ANGLES,
+        "STEEL_PIPES": STEEL_PIPES,
+        "RHS_SECTIONS": RHS_SECTIONS,
+    }
+    
+    for category, sections in all_sections.items():
+        for name, sec in sections.items():
+            # Check Fy and Fu are reasonable
+            if sec.Fy < 200 or sec.Fy > 500:
+                issues.append(f"{name}: Fy={sec.Fy} MPa outside typical range")
+            if sec.Fu < 250 or sec.Fu > 600:
+                issues.append(f"{name}: Fu={sec.Fu} MPa outside typical range")
+            if sec.Fy >= sec.Fu:
+                issues.append(f"{name}: Fy ({sec.Fy}) >= Fu ({sec.Fu}) - invalid!")
+            
+            # Check geometric consistency
+            if sec.d <= 0 or sec.bf <= 0 or sec.tw <= 0 or sec.tf <= 0:
+                issues.append(f"{name}: Invalid dimensions")
+            if sec.Ix <= 0 or sec.Sx <= 0 or sec.Iy <= 0 or sec.Sy <= 0:
+                issues.append(f"{name}: Invalid section properties")
+            
+            # Check weight reasonableness (should be > 0)
+            if sec.weight <= 0:
+                issues.append(f"{name}: Invalid weight")
+    
+    return issues
+
+
+if __name__ == "__main__":
+    print("=" * 70)
+    print("Thai Steel Section Database - มอก. Standards Compliance")
+    print("=" * 70)
+    
+    print("\nMaterial Grades per มอก. 1227-2558:")
+    for grade, mat in MATERIAL_GRADES.items():
+        print(f"  {grade}: Fy={mat.Fy} MPa, Fu={mat.Fu} MPa - {mat.application}")
+    
+    print(f"\nTotal Sections Available:")
+    print(f"  C-Channels: {len(C_CHANNELS)}")
+    print(f"  H-Beams: {len(H_BEAMS)}")
+    print(f"  I-Beams: {len(I_BEAMS)}")
+    print(f"  Equal Angles: {len(EQUAL_ANGLES)}")
+    print(f"  Unequal Angles: {len(UNEQUAL_ANGLES)}")
+    print(f"  Steel Pipes: {len(STEEL_PIPES)}")
+    print(f"  RHS/SHS: {len(RHS_SECTIONS)}")
+    print(f"  Steel Plates: {len(STEEL_PLATES)}")
+    
+    print("\nStandards References:")
+    for std, sections in get_all_sections_by_standard().items():
+        print(f"\n  {std}:")
+        for cat, secs in sections.items():
+            print(f"    {cat}: {len(secs)} sections")
+    
+    issues = validate_section_properties()
+    if issues:
+        print(f"\nValidation Issues ({len(issues)}):")
+        for issue in issues[:10]:
+            print(f"  - {issue}")
+    else:
+        print("\n✓ All section properties validated successfully")

@@ -14,15 +14,18 @@ from typing import Dict, Optional
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# Report Generator (PDF)
+# Report Generator (PDF + Excel)
 try:
     from report_generator import (
-        generate_beam_report, generate_column_report,
+        generate_beam_report, generate_column_report, generate_purlin_report,
+        export_purlin_to_excel,
         generate_combined_report, ProjectInfo,
+        EXCELPY_AVAILABLE,
     )
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
+    EXCELPY_AVAILABLE = False
 
 # Import our modules
 from steel_sections import (
@@ -203,9 +206,13 @@ class SteelStructureDesignApp:
         # Buttons
         button_frame = ttk.Frame(scrollable_frame)
         button_frame.grid(row=1, column=0, padx=10, pady=10)
-        
+
         ttk.Button(button_frame, text="คำนวณ (Calculate)", command=self.calculate_purlin).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="ค้นหาหน้าตัดประหยัดสุด", command=self.find_purlin_section).pack(side=tk.LEFT, padx=5)
+        if REPORTLAB_AVAILABLE:
+            ttk.Button(button_frame, text="Export PDF รายการคำนวณ", command=self.export_purlin_pdf).pack(side=tk.LEFT, padx=5)
+        if EXCELPY_AVAILABLE:
+            ttk.Button(button_frame, text="Export Excel", command=self.export_purlin_excel).pack(side=tk.LEFT, padx=5)
         
         # Output frame
         output_frame = ttk.LabelFrame(scrollable_frame, text="ผลลัพธ์ - Results")
@@ -255,10 +262,17 @@ class SteelStructureDesignApp:
             )
             results = design.run_check()
             report = format_purlin_report(design, results)
-            
+
             self.purlin_results_text.delete(1.0, tk.END)
             self.purlin_results_text.insert(tk.END, report)
-            
+
+            # Store for PDF/Excel export
+            self._purlin_result = results
+            self._purlin_section_name = inputs['section_name']
+            self._purlin_span = inputs['purlin_span']
+            self._purlin_spacing = inputs['purlin_spacing']
+            self._purlin_slope = inputs['roof_slope_degree']
+
             status = "ผ่าน" if results['is_ok'] else "ไม่ผ่าน"
             self.status_var.set(f"Purlin: {status} - {inputs['section_name']}")
             
@@ -312,6 +326,14 @@ class SteelStructureDesignApp:
                     self.purlin_results_text.delete(1.0, tk.END)
                     self.purlin_results_text.insert(tk.END, report)
                     self.purlin_section_var.set(found)
+
+                    # Store for PDF/Excel export
+                    self._purlin_result = results
+                    self._purlin_section_name = found
+                    self._purlin_span = inputs['purlin_span']
+                    self._purlin_spacing = inputs['purlin_spacing']
+                    self._purlin_slope = inputs['roof_slope_degree']
+
                     self.status_var.set(f"พบหน้าตัดประหยัดสุด: {found}")
                     break
                 else:
@@ -800,6 +822,66 @@ class SteelStructureDesignApp:
             generate_column_report(result, self._column_section_name,
                                     self._column_height, proj, path)
             messagebox.showinfo("สำเร็จ", f"บันทึก PDF เรียบร้อย\n{path}")
+        except Exception as e:
+            messagebox.showerror("ข้อผิดพลาด", str(e))
+
+    def export_purlin_pdf(self):
+        """Export purlin design to PDF."""
+        if not REPORTLAB_AVAILABLE:
+            messagebox.showerror("ข้อผิดพลาด", "reportlab ไม่ได้ติดตั้ง")
+            return
+        result = getattr(self, "_purlin_result", None)
+        if result is None:
+            messagebox.showwarning("คำเตือน", "กรุณาคำนวณแปก่อน แล้วค่อย Export PDF")
+            return
+        proj = self._collect_project_info()
+        if proj is None:
+            return
+        path = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF files", "*.pdf")],
+            initialfile=f"purlin_{self._purlin_section_name}_{self._purlin_span}m.pdf",
+            title="บันทึกรายการคำนวณแป",
+        )
+        if not path:
+            return
+        try:
+            generate_purlin_report(
+                result, self._purlin_section_name,
+                self._purlin_span, self._purlin_spacing,
+                self._purlin_slope, proj, path
+            )
+            messagebox.showinfo("สำเร็จ", f"บันทึก PDF เรียบร้อย\n{path}")
+        except Exception as e:
+            messagebox.showerror("ข้อผิดพลาด", str(e))
+
+    def export_purlin_excel(self):
+        """Export purlin design to Excel."""
+        if not EXCELPY_AVAILABLE:
+            messagebox.showerror("ข้อผิดพลาด", "openpyxl ไม่ได้ติดตั้ง")
+            return
+        result = getattr(self, "_purlin_result", None)
+        if result is None:
+            messagebox.showwarning("คำเตือน", "กรุณาคำนวณแปก่อน แล้วค่อย Export Excel")
+            return
+        proj = self._collect_project_info()
+        if proj is None:
+            return
+        path = filedialog.asksaveasfilename(
+            defaultextension=".xlsx",
+            filetypes=[("Excel files", "*.xlsx")],
+            initialfile=f"purlin_{self._purlin_section_name}_{self._purlin_span}m.xlsx",
+            title="บันทึกข้อมูลการคำนวณแป (Excel)",
+        )
+        if not path:
+            return
+        try:
+            export_purlin_to_excel(
+                result, self._purlin_section_name,
+                self._purlin_span, self._purlin_spacing,
+                self._purlin_slope, path, proj
+            )
+            messagebox.showinfo("สำเร็จ", f"บันทึก Excel เรียบร้อย\n{path}")
         except Exception as e:
             messagebox.showerror("ข้อผิดพลาด", str(e))
 

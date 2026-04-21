@@ -14,13 +14,13 @@ A comprehensive steel structure design application based on **Thai Engineering I
 | Standard | Description | Implementation |
 |----------|-------------|----------------|
 | **วสท. 011038-22** | Structural Steel Buildings Design | ✅ ASD method fully implemented |
-| **วสท. 011038-22** | LRFD method | ⚠️ Code exists, not wired to GUI yet |
+| **วสท. 011038-22** | LRFD method | ✅ Wired to web UI for Beam/Column/Truss |
 
 ### Load Standards (มาตรฐานน้ำหนักบรรทุก)
 | Standard | Description | Implementation |
 |----------|-------------|----------------|
 | **มยผ. 1311-50** | Wind load calculations | ⚠️ Currently using ASCE 7 approximation - **Needs update** |
-| **มยผ. 1301/1302-61** | Earthquake resistance | ⚠️ Parameters defined, **design procedures not implemented** |
+| **มยผ. 1301/1302-61** | Earthquake resistance | ✅ Equivalent Lateral Force (ELF) procedure implemented in `seismic_design.py` and web UI |
 
 ### Material Properties (คุณสมบัติวัสดุ)
 
@@ -284,18 +284,19 @@ Purlin_Disign/
 
 ## Future Enhancements
 
-- [ ] Truss design module (โครงถัก)
-- [ ] Footing/Foundation design (ฐานราก)
+- [x] Truss design module (โครงถัก)
+- [x] Footing/Foundation design (ฐานราก)
 - [x] PDF report generation with Thai fonts
 - [x] Excel export for calculation sheets
 - [x] Bending moment and shear force diagrams in PDF
 - [ ] 3D visualization of structures
-- [ ] LRFD design method
-- [ ] Seismic design per มยผ. 1302-61
+- [x] LRFD design method (Beam/Column/Truss)
+- [x] Seismic design per มยผ. 1302-61 (Equivalent Lateral Force procedure)
 - [ ] Steel grade optimization
 - [ ] Connection detail drawings
 - [ ] Batch report generation for multiple members
 - [ ] Multi-language support (Thai/English toggle)
+- [ ] Wind load per มยผ. 1311-50 (replace ASCE 7 approximation)
 
 ## Disclaimer
 
